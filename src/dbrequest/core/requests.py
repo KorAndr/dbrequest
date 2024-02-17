@@ -9,7 +9,7 @@ from .idb_request import IDBRequest
 from .fields import AbstractField
 
 
-class AbstarctDBRequest(IDBRequest):
+class AbstractDBRequest(IDBRequest):
     def __init__(self) -> None:
         self._TABLE_NAME: str = None
         self._saverLoader = DatabaseSaverLoader()

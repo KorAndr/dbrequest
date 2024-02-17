@@ -12,7 +12,7 @@ dbrequest это библиотека для удобной работы с ба
 
 ## Установка
 
-Installation from the PyPI repository:
+Из репозитория PyPI:
 
 ```bash
 $ pip install dbrequest
@@ -129,12 +129,12 @@ class UserLastMessageField(AbstractField):
 Остаётся создать класс запросов в базу данных, связанных с пользователем. Создадим файл `user_request.py`
 
 ```python
-from dbrequest import AbstarctDBRequest
+from dbrequest import AbstractDBRequest
 from dbrequest import IdField
 
 from user_fields import *
 
-class UserDBRequest(AbstarctDBRequest):
+class UserDBRequest(AbstractDBRequest):
     def __init__(self) -> None:
         super().__init__()
         self._TABLE_NAME = 'users'

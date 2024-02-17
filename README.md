@@ -4,6 +4,8 @@ dbrequest is a library for easy database handling. The library is primarily desi
 
 The library provides an abstraction from the DBMS and allows working with storing, loading, modifying, and deleting object-containers without explicit use of SQL.
 
+[Read this in Russian](https://github.com/korandr/dbrequest/blob/main/README.ru.md) 
+
 ## Contents
 
 - [Installation](#installation)
@@ -14,7 +16,7 @@ The library provides an abstraction from the DBMS and allows working with storin
 
 ## Installation
 
-Из репозитория PyPI:
+Installation from the PyPI repository:
 
 ```bash
 $ pip install dbrequest
@@ -137,12 +139,12 @@ If needed, these classes can contain additional logic for data processing when e
 The last step is to create a class for database requests related to the user. Let's create the file `user_request.py`.
 
 ```python
-from dbrequest import AbstarctDBRequest
+from dbrequest import AbstractDBRequest
 from dbrequest import IdField
 
 from user_fields import *
 
-class UserDBRequest(AbstarctDBRequest):
+class UserDBRequest(AbstractDBRequest):
     def __init__(self) -> None:
         super().__init__()
         self._TABLE_NAME = 'users'
