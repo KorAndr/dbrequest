@@ -1,26 +1,13 @@
 from typing import Tuple
 
 import dbrequest
-from dbrequest import UniversalExecutor
-from dbrequest.sql_requests import SQLFile
 
 from user import User
 from user_request import UserDBRequest
 
 
-dbrequest.init(executor='SQLite', database_filename='database.db')
+dbrequest.init(init_script='create_table.sql')
 
-
-# Creating a table
-
-request = SQLFile()
-request.setArgs(filename='create_table.sql')
-
-executor = UniversalExecutor()
-executor.start(request)
-
-
-# Demo user operations
 
 user = User()
 user.username = 'simple_user'

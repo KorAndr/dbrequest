@@ -36,7 +36,7 @@ import dbrequest
 
 В библиотеке используются некоторые ограничения (например, все сохраняемые объекты должны иметь id типа int), которые удобны для проектов разработчика, но не обязательно подойдут другим проектам. 
 
-Тем не менее, разработчик не против внедрения этой библиотеки в другие проекты, если она решает необходимые.
+Тем не менее, разработчик не против внедрения этой библиотеки в другие проекты, если она решает необходимые задачи.
 
 В библиотеке не соблюдён код-стайл PEP и вряд ли будет. Объекты, методы и свойства здесь всегда называются с помощью camelCase. Но при этом важной задачей является соблюдение принципов SOLID.
 
@@ -45,29 +45,18 @@ import dbrequest
 
 ```sql
 create table IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL UNIQUE,
-  last_message TEXT DEFAULT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    last_message TEXT DEFAULT NULL
 );
 ```
-Первым делом инициализируем библиотеку
+
+Инициализируем библиотеку
 
 ```python
 import dbrequest
 
-dbrequest.init(executor='SQLite', database_filename='database.db')
-```
-Теперь создадим в базе данных таблицу `users`
-
-```python
-from dbrequest import UniversalExecutor
-from dbrequest.sql_requests import SQLFile
-
-request = SQLFile()
-request.setArgs(filename='create_table.sql')
-
-executor = UniversalExecutor()
-executor.start(request)
+dbrequest.init(init_script='create_table.sql')
 ```
 Далее в файле `user.py` создадим класс `User`. Наследование от `Savable` автоматически добавит в класс поле `_id` и свойство `id`, что является реализацией интерфейса `dbrequest.ISavable`. 
 
@@ -186,9 +175,11 @@ for user in users:
     request.delete(user)
 ```
 
+[Готовый код из этого примера](https://github.com/korandr/dbrequest/tree/main/example)
+
 ## Документация
 
-[Здесь](https://icy-cymbal-88c.notion.site/dbrequest-cde47cf005ad45c9a81d02c009ba9966?pvs=4) можно ознакомиться с документацией к бибиотеке (только на русском)
+[Здесь](https://github.com/korandr/dbrequest/wiki) можно ознакомиться с документацией к бибиотеке (только на русском)
 
 ## Обратная связь
 Разработчик: Андрей Коровянский | [korandrmail@ya.ru](mailto:korandrmail@ya.ru) 

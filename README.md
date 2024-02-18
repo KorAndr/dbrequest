@@ -48,33 +48,20 @@ The library does not adhere to the PEP code style and is unlikely to do so. Obje
 
 For example, let's create a table `users`. Describe it in the file `create_table.sql`.
 
-```
+```sql
 create table IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL UNIQUE,
-  last_message TEXT DEFAULT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    last_message TEXT DEFAULT NULL
 );
 ```
 
-First of all, let's initialize the library.
+Let's initialize the library.
 
 ```python
 import dbrequest
 
-dbrequest.init(executor='SQLite', database_filename='database.db')
-```
-
-Now let's create a table `users` in the database.
-
-```python
-from dbrequest import UniversalExecutor
-from dbrequest.sql_requests import SQLFile
-
-request = SQLFile()
-request.setArgs(filename='create_table.sql')
-
-executor = UniversalExecutor()
-executor.start(request)
+dbrequest.init(init_script='create_table.sql')
 ```
 
 Next, in the file `user.py`, let's create a class `User`. Inheriting from `Savable` will automatically add the `_id` field and the `id` property to the class, which is the implementation of the `dbrequest.ISavable` interface.
@@ -197,9 +184,11 @@ for user in users:
     request.delete(user)
 ```
 
+[See the code from the example](https://github.com/korandr/dbrequest/tree/main/example)
+
 ## Documentation
 
-The documentation for the library is only [available in Russian](https://icy-cymbal-88c.notion.site/dbrequest-cde47cf005ad45c9a81d02c009ba9966?pvs=4). If you are genuinely interested in the documentation, I suggest using Google Translate as a browser extension, as it works really well.
+The documentation for the library is only [available in Russian](https://github.com/korandr/dbrequest/wiki). If you are genuinely interested in the documentation, I suggest using Google Translate as a browser extension, as it works really well.
 
 ## Feedback
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dbrequest"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     { name="korandr", email="korandrmail@ya.ru" },
 ]
@@ -22,5 +22,5 @@ classifiers = [
 
 [project.urls]
 Github = "https://github.com/korandr/dbrequest"
-Documentation = "https://icy-cymbal-88c.notion.site/dbrequest-cde47cf005ad45c9a81d02c009ba9966?pvs=4"
+Documentation = "https://github.com/korandr/dbrequest/wiki"
 

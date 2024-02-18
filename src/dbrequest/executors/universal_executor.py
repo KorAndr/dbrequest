@@ -12,10 +12,10 @@ class UniversalExecutor(IDatabaseExecutor):
             config.Executors.SQLITE: SQLiteExecutor()
         }
    
-        if config.EXECUTOR not in self._EXECUTORS.keys():
-            raise ValueError(f'Executor value {config.EXECUTOR} is not correct')
-
-        self._executor = type(self._EXECUTORS[config.EXECUTOR])(database_filename)
+        if isinstance(config.EXECUTOR, IDatabaseExecutor):
+            self._executor = type(config.EXECUTOR)(database_filename)
+        else:
+            self._executor = type(self._EXECUTORS[config.EXECUTOR])(database_filename)
 
     def start(self, sqlRequest: ISQLRequest) -> List[Tuple[Any]]:
         return self._executor.start(sqlRequest)

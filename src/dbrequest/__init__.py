@@ -1,4 +1,4 @@
-from .config.config import init
+from .config.config import init, Executors
 from .executors.universal_executor import UniversalExecutor 
 from .core.requests import AbstractDBRequest
 from .core.idb_request import IDBRequest
