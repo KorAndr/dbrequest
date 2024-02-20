@@ -25,11 +25,11 @@ def init(
     if not isinstance(database_filename, str): raise TypeError(type(database_filename))
     if not isinstance(executor, (str, Executors, IDatabaseExecutor)): raise TypeError(executor)
     if not isinstance(logger_name, str): raise TypeError(type(logger_name))
-    if not isinstance(init_script, str): raise TypeError(type(database_filename))
+    if not isinstance(init_script, (str, type(None))): raise TypeError(type(init_script))
 
     if database_filename == '': raise ValueError(database_filename)
     if logger_name == '': raise ValueError(logger_name)
-    if init_script == '': raise ValueError(init_script)
+    if init_script is not None and init_script == '': raise ValueError(init_script)
 
     if isinstance(executor, str):
         executor = Executors(executor)

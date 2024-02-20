@@ -16,6 +16,7 @@ class SQLiteExecutor(IDatabaseExecutor):
             raise TypeError(type(sqlRequest))
         
         database_filename = config.DATABASE_FILENAME if self._database_filename is None else self._database_filename
+        connection = None
 
         try:
             connection = sqlite3.connect(database_filename)
