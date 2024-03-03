@@ -5,5 +5,5 @@ from .core.idb_request import IDBRequest
 from .core.universal_requests import AbstractUniversalDBRequest
 from .core.fields import AbstractField, IdField
 from .core.type_converters import AbstractDBTypeConverter
-from .core.savable import Savable 
+from .core.savable import Savable, ISavable 
 
