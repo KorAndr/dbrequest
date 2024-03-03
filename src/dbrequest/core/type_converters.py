@@ -42,6 +42,8 @@ class DatetimeDBTypeConverter(AbstractDBTypeConverter):
         return timestamp
 
     def fromDatabase(self, value: int) -> Datetime:
+        if not isinstance(value, int):
+            raise TypeError(type(value))
         if value is not None:
             return Datetime.fromtimestamp(value)
 

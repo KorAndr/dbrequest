@@ -66,14 +66,19 @@ class DatabaseSaverLoader:
         return value
 
     def _setFieldValue(self, field:AbstractField, value) -> None:
-        if not field.TYPE in self._SUPPORTED_TYPES:
-            for converter in self._type_converters:
-                if converter.TYPE == field.TYPE:
-                    value = converter.fromDatabase(value)
-                    break
-            else:
-                raise TypeError(field.TYPE)
-        
-        field.value = value
+        if value is None:
+            if not field._ALLOWED_NONE:
+                raise ValueError(f'Field "{field.NAME}" not allowed None type')
+            field.value = None
+        else:
+            if not field.TYPE in self._SUPPORTED_TYPES:
+                for converter in self._type_converters:
+                    if converter.TYPE == field.TYPE:
+                        value = converter.fromDatabase(value)
+                        break
+                else:
+                    raise TypeError(field.TYPE)
+            
+            field.value = value
 
 

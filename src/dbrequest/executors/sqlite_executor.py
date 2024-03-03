@@ -3,6 +3,7 @@ import logging
 from typing import List, Tuple, Any
 
 from ..config import config
+from ..sql_requests import SQLFile
 from .interfaces import ISQLRequest, IDatabaseExecutor
 
 
@@ -26,7 +27,10 @@ class SQLiteExecutor(IDatabaseExecutor):
             request_log = '\n'.join(str(line) for line in request)
             self._logger.debug(f'Running request:\n{request_log}')
             
-            cursor.execute(*request)
+            if isinstance(sqlRequest, SQLFile):
+                cursor.executescript(request[0])
+            else:
+                cursor.execute(*request)
             
             response = None
             if request[0].split()[0].upper() == 'SELECT':
