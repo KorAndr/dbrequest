@@ -86,7 +86,7 @@ class AbstractDBRequest(IDBRequest):
 
         if sortField is not None:
             for field in self._FIELDS:
-                if type(field) == type(sortField):
+                if type(field) == sortField:
                     order_by = field.NAME
                     break
             else:
