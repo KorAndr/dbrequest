@@ -22,7 +22,7 @@ class AbstractUniversalDBRequest(IDBRequest):
         self._getStorageRequest(object).delete(object)
     
     def loadAll(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sortField:AbstractField=None) -> list:
-        return self._getStorageRequest(object_sample).loadAll(object_sample)
+        return self._getStorageRequest(object_sample).loadAll(object_sample, limit, reverse, sortField)
     
     def _getStorageRequest(self, object:ISavable) -> IDBRequest:
         return self._REQUESTS[type(object)]
