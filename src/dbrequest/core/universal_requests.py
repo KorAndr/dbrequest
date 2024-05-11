@@ -25,6 +25,14 @@ class AbstractUniversalDBRequest(IDBRequest):
         return self._getStorageRequest(object_sample).loadAll(object_sample, limit, reverse, sortField)
     
     def _getStorageRequest(self, object:ISavable) -> IDBRequest:
-        return self._REQUESTS[type(object)]
+        request: IDBRequest = None
+        for object_type in self._REQUESTS.keys():
+            if isinstance(object, object_type):
+                request = self._REQUESTS[object_type]
+                break
+        else:
+            raise TypeError(type(object))
+
+        return request
     
     
