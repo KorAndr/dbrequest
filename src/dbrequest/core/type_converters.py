@@ -60,7 +60,7 @@ class DateDBTypeConverter(AbstractDBTypeConverter):
 
 class AbstractJsonableDBTypeConverter(AbstractDBTypeConverter):
     def toDatabase(self, value: Any) -> str:
-        return json.dumps(value)
+        return json.dumps(value, ensure_ascii=False, indent=2)
 
     def fromDatabase(self, value: str) -> Any:
         if value is not None:
