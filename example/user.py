@@ -12,7 +12,7 @@ class User(Savable):
         return self._username
     
     @property
-    def lastMessage(self) -> str:
+    def last_message(self) -> str:
         return self._last_message
 
     @username.setter
@@ -23,8 +23,8 @@ class User(Savable):
             raise ValueError(value)
         self._username = value
     
-    @lastMessage.setter
-    def lastMessage(self, value:str) -> None:
+    @last_message.setter
+    def last_message(self, value:str) -> None:
         if not isinstance(value, str) and not value is None:
             raise TypeError(type(value))
         self._last_message = value

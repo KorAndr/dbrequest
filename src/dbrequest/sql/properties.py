@@ -11,10 +11,8 @@ class TableProp:
     
     @table.setter
     def table(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise ValueError(value)
+        if not isinstance(value, str): raise TypeError(type(value))
+        if value == '': raise ValueError(value)
         self._table = value
 
 class ColumnsProp:
@@ -46,7 +44,7 @@ class ColumnsProp:
         self._columns = value
 
     @property
-    def _columnsStr(self) -> str:
+    def _columns_str(self) -> str:
         return ', '.join(self._columns)
 
 class ValuesProp:
@@ -71,7 +69,7 @@ class ValuesProp:
         self._values = value
 
     @property
-    def _valuesTemplate(self) -> str:
+    def _values_template(self) -> str:
         return ', '.join(['?'] * len(self._values))
 
 class WhereProp:
@@ -91,7 +89,7 @@ class WhereProp:
         self._where = value
 
     @property
-    def _whereStr(self) -> str:
+    def _where_str(self) -> str:
         where_str = ''
         if self._where is not None:
             where_str = f' WHERE {self._where}'
@@ -102,11 +100,11 @@ class OrderByProp:
         self._order_by: str = None
 
     @property
-    def orderBy(self) -> str:
+    def order_by(self) -> str:
         return self._order_by
     
-    @orderBy.setter
-    def orderBy(self, value:str) -> None:
+    @order_by.setter
+    def order_by(self, value:str) -> None:
         if not isinstance(value, str):
             raise TypeError(type(value))
         if value == '':
@@ -114,7 +112,7 @@ class OrderByProp:
         self._order_by = value
 
     @property
-    def _orderStr(self) -> str:
+    def _order_str(self) -> str:
         order_str = ''
         if self._order_by is not None:
             order_str = f' ORDER BY {self._order_by}'
@@ -138,7 +136,7 @@ class LimitProp:
         self._limit = value
 
     @property
-    def _limitStr(self) -> str:
+    def _limit_str(self) -> str:
         limit_str = ''
         if self._limit is not None:
             limit_str = f' LIMIT {self._limit}'

@@ -17,7 +17,7 @@ class UniversalExecutor(IDatabaseExecutor):
         else:
             self._executor = type(self._EXECUTORS[config.EXECUTOR])(database_filename)
 
-    def start(self, sqlRequest: ISQLRequest) -> List[Tuple[Any]]:
-        return self._executor.start(sqlRequest)
+    def start(self, sql_request: ISQLRequest) -> List[Tuple[Any]]:
+        return self._executor.start(sql_request)
     
     

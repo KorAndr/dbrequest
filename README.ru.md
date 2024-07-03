@@ -5,7 +5,6 @@ dbrequest это библиотека для удобной работы с ба
 
 ## Содержание
 - [Установка](#установка)
-- [Дисклеймер](#дисклеймер)
 - [Быстрый старт](#быстрый-старт)
 - [Документация](#документация)
 - [Обратная связь](#обратная-связь)
@@ -29,16 +28,6 @@ $ pip install git+https://github.com/korandr/dbrequest.git
 ```python
 import dbrequest
 ```
-
-## Дисклеймер
-
-Библиотека разрабатывается в первую очередь для личных проектов разработчика и не ставит приоритетной целью пригодность для любых проектов.
-
-В библиотеке используются некоторые ограничения (например, все сохраняемые объекты должны иметь id типа int), которые удобны для проектов разработчика, но не обязательно подойдут другим проектам. 
-
-Тем не менее, разработчик не против внедрения этой библиотеки в другие проекты, если она решает необходимые задачи.
-
-В библиотеке не соблюдён код-стайл PEP и вряд ли будет. Объекты, методы и свойства здесь всегда называются с помощью camelCase. Но при этом важной задачей является соблюдение принципов SOLID.
 
 ## Быстрый старт
 Для примера создадим таблицу `users`. Опишем её в файле `create_table.sql`
@@ -66,30 +55,8 @@ from dbrequest import Savable
 class User(Savable):
     def __init__(self) -> None:
         super().__init__()
-        self._username: str = None
-        self._last_message: str = None
-
-    @property
-    def username(self) -> str:
-        return self._username
-    
-    @property
-    def lastMessage(self) -> str:
-        return self._last_message
-
-    @username.setter
-    def username(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise ValueError(value)
-        self._username = value
-    
-    @lastMessage.setter
-    def lastMessage(self, value:str) -> None:
-        if not isinstance(value, str) and not value is None:
-            raise TypeError(type(value))
-        self._last_message = value
+        self.username: str = None
+        self.last_message: str = None
 ```
 Теперь создадим файл `user_fields.py` и реализуем в нём классы, с помощью которых библиотека будет загружать и сохранять поля класса `User` в базу данных. 
 
@@ -100,17 +67,17 @@ from user import User
 
 
 class UserUsernameField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
+    def get_value_from_object(self, object:User) -> None:
         self._value = object.username 
 
-    def setValueToObject(self, object:User) -> None:
+    def set_value_to_object(self, object:User) -> None:
         object.username = self._value
 
 class UserLastMessageField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
+    def get_value_from_object(self, object:User) -> None:
         self._value = object.lastMessage 
 
-    def setValueToObject(self, object:User) -> None:
+    def set_value_to_object(self, object:User) -> None:
         object.lastMessage = self._value
 ```
 При необходимости эти классы могут содержать дополнительную логику обработки данных при обмене между классом-контейнером и базой данных. Например, приведение нестандартных типов данных к типам данных, поддерживаемых базой данных.  
@@ -155,23 +122,23 @@ request.save(user)
 user: User = request.loadAll(User(), limit=1)[0]
 print(user.id)
 
-sameUser = User()
-sameUser.id = user.id
-request.load(sameUser)
-print(sameUser.username)
+same_user = User()
+same_user.id = user.id
+request.load(same_user)
+print(same_user.username)
 
-user.lastMessage = 'Hello world!'
+user.last_message = 'Hello world!'
 request.update(user)
 
 admin = User()
 admin.username = 'admin'
-admin.lastMessage = 'Do you want to be banned?'
+admin.last_message = 'Do you want to be banned?'
 
 request.save(admin)
 
-users: Tuple[User] = request.loadAll(User())
+users: Tuple[User] = request.load_all(User())
 for user in users:
-    print(f'The user who said "{user.lastMessage}" has been deleted')
+    print(f'The user who said "{user.last_message}" has been deleted')
     request.delete(user)
 ```
 

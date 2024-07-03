@@ -12,9 +12,9 @@ class SQLiteExecutor(IDatabaseExecutor):
         self._logger = logging.getLogger(config.LOGGER_NAME)
         self._database_filename = database_filename
     
-    def start(self, sqlRequest:ISQLRequest) -> List[Tuple[Any]]:
-        if not isinstance(sqlRequest, ISQLRequest):
-            raise TypeError(type(sqlRequest))
+    def start(self, sql_request:ISQLRequest) -> List[Tuple[Any]]:
+        if not isinstance(sql_request, ISQLRequest):
+            raise TypeError(type(sql_request))
         
         database_filename = config.DATABASE_FILENAME if self._database_filename is None else self._database_filename
         connection = None
@@ -23,11 +23,11 @@ class SQLiteExecutor(IDatabaseExecutor):
             connection = sqlite3.connect(database_filename)
             cursor = connection.cursor()
 
-            request = sqlRequest.getRequest()
+            request = sql_request.get_request()
             request_log = '\n'.join(str(line) for line in request)
             self._logger.debug(f'Running request:\n{request_log}')
             
-            if isinstance(sqlRequest, SQLFile):
+            if isinstance(sql_request, SQLFile):
                 cursor.executescript(request[0])
             else:
                 cursor.execute(*request)

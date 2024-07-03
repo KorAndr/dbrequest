@@ -1,10 +1,11 @@
+from abc import ABC, abstractmethod
 from typing import Tuple, Any
 
 
-class ISQLRequest:
-    def setArgs(self, *kwargs) -> None:
-        raise NotImplementedError()
+class ISQLRequest(ABC):
+    @abstractmethod
+    def set_args(self, *kwargs) -> None: pass
 
-    def getRequest(self) -> Tuple[str, Tuple[Any]]:
-        raise NotImplementedError()
+    @abstractmethod
+    def get_request(self) -> Tuple[str, Tuple[Any]]: pass
 

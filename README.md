@@ -9,7 +9,6 @@ The library provides an abstraction from the DBMS and allows working with storin
 ## Contents
 
 - [Installation](#installation)
-- [Disclaimer](#disclaimer)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Feedback](#feedback)
@@ -33,16 +32,6 @@ Library import:
 ```python
 import dbrequest
 ```
-
-## Disclaimer
-
-The library is primarily developed for the developer's personal projects and does not prioritize suitability for any projects.
-
-Some restrictions are used in the library (for example, all objects to be saved must have an id of type int), which are convenient for the developer's projects but may not necessarily be suitable for other projects.
-
-Nevertheless, the developer is not against integrating this library into other projects if it solves the necessary tasks.
-
-The library does not adhere to the PEP code style and is unlikely to do so. Objects, methods, and properties are always named using camelCase here. However, an important task is to adhere to the SOLID principles.
 
 ## Quick Start
 
@@ -72,30 +61,9 @@ from dbrequest import Savable
 class User(Savable):
     def __init__(self) -> None:
         super().__init__()
-        self._username: str = None
-        self._last_message: str = None
+        self.username: str = None
+        self.last_message: str = None
 
-    @property
-    def username(self) -> str:
-        return self._username
-
-    @property
-    def lastMessage(self) -> str:
-        return self._last_message
-
-    @username.setter
-    def username(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise ValueError(value)
-        self._username = value
-
-    @lastMessage.setter
-    def lastMessage(self, value:str) -> None:
-        if not isinstance(value, str) and not value is None:
-            raise TypeError(type(value))
-        self._last_message = value
 ```
 
 Now let's create the file `user_fields.py` and implement classes in it that will be used by the library to load and save fields of the `User` class in the database.
@@ -107,17 +75,17 @@ from user import User
 
 
 class UserUsernameField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
+    def get_value_from_object(self, object:User) -> None:
         self._value = object.username
 
-    def setValueToObject(self, object:User) -> None:
+    def set_value_to_object(self, object:User) -> None:
         object.username = self._value
 
 class UserLastMessageField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
+    def get_value_from_object(self, object:User) -> None:
         self._value = object.lastMessage
 
-    def setValueToObject(self, object:User) -> None:
+    def set_value_to_object(self, object:User) -> None:
         object.lastMessage = self._value
 ```
 
@@ -161,26 +129,26 @@ user.username = 'simple_user'
 request = UserDBRequest()
 request.save(user)
 
-user: User = request.loadAll(User(), limit=1)[0]
+user: User = request.load_all(User(), limit=1)[0]
 print(user.id)
 
-sameUser = User()
-sameUser.id = user.id
-request.load(sameUser)
-print(sameUser.username)
+same_user = User()
+same_user.id = user.id
+request.load(same_user)
+print(same_user.username)
 
-user.lastMessage = 'Hello world!'
+user.last_message = 'Hello world!'
 request.update(user)
 
 admin = User()
 admin.username = 'admin'
-admin.lastMessage = 'Do you want to be banned?'
+admin.last_message = 'Do you want to be banned?'
 
 request.save(admin)
 
-users: Tuple[User] = request.loadAll(User())
+users: Tuple[User] = request.load_all(User())
 for user in users:
-    print(f'The user who said "{user.lastMessage}" has been deleted')
+    print(f'The user who said "{user.last_message}" has been deleted')
     request.delete(user)
 ```
 

@@ -4,17 +4,17 @@ from user import User
 
 
 class UserUsernameField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
+    def get_value_from_object(self, object:User) -> None:
         self._value = object.username 
 
-    def setValueToObject(self, object:User) -> None:
+    def set_value_to_object(self, object:User) -> None:
         object.username = self._value
 
 class UserLastMessageField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
-        self._value = object.lastMessage 
+    def get_value_from_object(self, object:User) -> None:
+        self._value = object.last_message 
 
-    def setValueToObject(self, object:User) -> None:
-        object.lastMessage = self._value
+    def set_value_to_object(self, object:User) -> None:
+        object.last_message = self._value
 
         

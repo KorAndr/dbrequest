@@ -43,7 +43,7 @@ def init(
         from ..sql_requests import SQLFile
 
         request = SQLFile()
-        request.setArgs(filename=init_script)
+        request.set_args(filename=init_script)
 
         executor = UniversalExecutor()
         executor.start(request)

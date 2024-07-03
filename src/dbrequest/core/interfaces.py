@@ -1,25 +1,28 @@
-class ISavable:
+from abc import ABC, abstractmethod
+
+
+class ISavable(ABC):
     @property
-    def id(self) -> int:
-        raise NotImplementedError()
+    @abstractmethod
+    def id(self) -> int: pass
     
     @id.setter
-    def id(self, value) -> None:
-        raise NotImplementedError()
+    @abstractmethod
+    def id(self, value) -> None: pass
     
 class IUsernameKeySavable:
     @property
-    def username(self) -> str:
-        raise NotImplementedError()
+    @abstractmethod
+    def username(self) -> str: pass
 
     @username.setter
-    def username(self, value) -> None:
-        raise NotImplementedError()
+    @abstractmethod
+    def username(self, value) -> None: pass
     
 class IJsonable:
-    def toJson(self) -> str:
-        raise NotImplementedError()
+    @abstractmethod
+    def to_json(self) -> str: pass
     
-    def fromJson(self, json_str:str) -> None:
-        raise NotImplementedError()
+    @abstractmethod
+    def from_json(self, json_str:str) -> None: pass
     

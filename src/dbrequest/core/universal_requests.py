@@ -10,21 +10,21 @@ class AbstractUniversalDBRequest(IDBRequest):
         self._REQUESTS: Dict[ISavable, IDBRequest] = {}
 
     def save(self, object:ISavable) -> None:
-        self._getStorageRequest(object).save(object)
+        self._get_storage_request(object).save(object)
     
     def load(self, object:ISavable) -> bool:
-        return self._getStorageRequest(object).load(object)
+        return self._get_storage_request(object).load(object)
     
     def update(self, object:ISavable) -> None:
-        self._getStorageRequest(object).update(object)
+        self._get_storage_request(object).update(object)
 
     def delete(self, object:ISavable) -> None:
-        self._getStorageRequest(object).delete(object)
+        self._get_storage_request(object).delete(object)
     
-    def loadAll(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sortField:AbstractField=None) -> list:
-        return self._getStorageRequest(object_sample).loadAll(object_sample, limit, reverse, sortField)
+    def load_all(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sort_field:AbstractField=None) -> list:
+        return self._get_storage_request(object_sample).load_all(object_sample, limit, reverse, sort_field)
     
-    def _getStorageRequest(self, object:ISavable) -> IDBRequest:
+    def _get_storage_request(self, object:ISavable) -> IDBRequest:
         request: IDBRequest = None
         for object_type in self._REQUESTS.keys():
             if isinstance(object, object_type):

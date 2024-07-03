@@ -1,10 +1,11 @@
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, override
 from datetime import datetime as Datetime, date as Date
 
 import json 
 
 
-class AbstractDBTypeConverter:
+class AbstractDBTypeConverter(ABC):
     def __init__(self) -> None:
         self._TYPE: type = None
 
@@ -12,11 +13,11 @@ class AbstractDBTypeConverter:
     def TYPE(self) -> type:
         return self._TYPE
 
-    def toDatabase(self, value:Any) -> Any:
-        raise NotImplementedError()
+    @abstractmethod
+    def to_database(self, value:Any) -> Any: pass
 
-    def fromDatabase(self, value:Any) -> Any:
-        raise NotImplementedError()
+    @abstractmethod
+    def from_database(self, value:Any) -> Any: pass
 
 # Default converters
 
@@ -24,24 +25,28 @@ class BoolDBTypeConverter(AbstractDBTypeConverter):
     def __init__(self) -> None:
         self._TYPE: type = bool
 
-    def toDatabase(self, value: bool) -> int:
+    @override
+    def to_database(self, value: bool) -> int:
         return int(value)
 
-    def fromDatabase(self, value: int) -> bool:
+    @override
+    def from_database(self, value: int) -> bool:
         return value == 1
 
 class DatetimeDBTypeConverter(AbstractDBTypeConverter):
     def __init__(self) -> None:
         self._TYPE: type = Datetime
 
-    def toDatabase(self, value: Datetime) -> int:
+    @override
+    def to_database(self, value: Datetime) -> int:
         timestamp = value.timestamp()
         if value.microsecond == 0:
             timestamp = int(timestamp)
 
         return timestamp
 
-    def fromDatabase(self, value: int) -> Datetime:
+    @override
+    def from_database(self, value: int) -> Datetime:
         if not isinstance(value, int):
             raise TypeError(type(value))
         if value is not None:
@@ -51,18 +56,22 @@ class DateDBTypeConverter(AbstractDBTypeConverter):
     def __init__(self) -> None:
         self._TYPE: type = Date
 
-    def toDatabase(self, value: Date) -> int:
+    @override
+    def to_database(self, value: Date) -> int:
         return value.toordinal()
 
-    def fromDatabase(self, value: int) -> Date:
+    @override
+    def from_database(self, value: int) -> Date:
         if value is not None:
             return Date.fromordinal(value)
 
 class AbstractJsonableDBTypeConverter(AbstractDBTypeConverter):
-    def toDatabase(self, value: Any) -> str:
+    @override
+    def to_database(self, value: Any) -> str:
         return json.dumps(value, ensure_ascii=False, indent=2)
 
-    def fromDatabase(self, value: str) -> Any:
+    @override
+    def from_database(self, value: str) -> Any:
         if value is not None:
             return json.loads(value)
         

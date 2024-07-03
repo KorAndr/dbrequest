@@ -27,45 +27,45 @@ class DatabaseSaverLoader:
             raise TypeError(type(value))
         self._FIELDS = value
 
-    def setTypeConverters(self, converters:Tuple[AbstractDBTypeConverter], replace:bool=False) -> None:
+    def set_type_converters(self, converters:Tuple[AbstractDBTypeConverter], replace:bool=False) -> None:
         if replace:
             self._type_converters = list(converters)
         else:
             self._type_converters += list(converters)
 
-    def getParamsAndValues(self, object:Any) -> Tuple[Tuple[str], Tuple[Any]]:
+    def get_params_and_values(self, object:Any) -> Tuple[Tuple[str], Tuple[Any]]:
         params_list: List[str] = []
         values_list: List[Any] = []
         for field in self._FIELDS:
-            field.getValueFromObject(object)
+            field.get_value_from_object(object)
             params_list.append(field.NAME)
-            values_list.append(self._getFieldValue(field))
+            values_list.append(self._get_field_value(field))
         
         return tuple(params_list), tuple(values_list)
     
-    def setValuesToObject(self, object:Any, values:Tuple[Any]) -> None:
+    def set_values_to_object(self, object:Any, values:Tuple[Any]) -> None:
         if len(self._FIELDS) != len(values):
             raise ValueError(len(self._FIELDS), len(values))
         
         data: Dict[AbstractField, Any] = dict(zip(self._FIELDS, values))
 
         for field in data.keys():
-            self._setFieldValue(field, data[field])
-            field.setValueToObject(object)
+            self._set_field_value(field, data[field])
+            field.set_value_to_object(object)
 
-    def _getFieldValue(self, field:AbstractField) -> Any:
+    def _get_field_value(self, field:AbstractField) -> Any:
         value = field.value
         if not type(value) in self._SUPPORTED_TYPES:
             for converter in self._type_converters:
                 if isinstance(value, converter.TYPE):
-                    value = converter.toDatabase(value)
+                    value = converter.to_database(value)
                     break
             else:
                 raise TypeError(type(value))
 
         return value
 
-    def _setFieldValue(self, field:AbstractField, value) -> None:
+    def _set_field_value(self, field:AbstractField, value) -> None:
         if value is None:
             if not field._ALLOWED_NONE:
                 raise ValueError(f'Field "{field.NAME}" not allowed None type')
@@ -74,7 +74,7 @@ class DatabaseSaverLoader:
             if not field.TYPE in self._SUPPORTED_TYPES:
                 for converter in self._type_converters:
                     if converter.TYPE == field.TYPE:
-                        value = converter.fromDatabase(value)
+                        value = converter.from_database(value)
                         break
                 else:
                     raise TypeError(field.TYPE)

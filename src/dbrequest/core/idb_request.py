@@ -14,5 +14,5 @@ class IDBRequest:
     def delete(self, object:ISavable) -> None:
         raise NotImplementedError() 
     
-    def loadAll(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sortField:AbstractField=None) -> list:
+    def load_all(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sort_field:AbstractField=None) -> list:
         raise NotImplementedError()

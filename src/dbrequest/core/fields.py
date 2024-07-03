@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 from typing import Any
 
 from .interfaces import ISavable, IUsernameKeySavable
 
 
-class AbstractField:
+class AbstractField(ABC):
     def __init__(self, name, t:type, allowed_none:bool=False) -> None:
         self._NAME: str = name
         self._TYPE: type = t
@@ -36,29 +37,29 @@ class AbstractField:
                 raise TypeError(f'{type(v)}, expected: {self._TYPE}')
         self._value = v
 
-    def getValueFromObject(self, object:Any) -> None:
-        raise NotImplementedError()
+    @abstractmethod
+    def get_value_from_object(self, object:Any) -> None: pass
 
-    def setValueToObject(self, object:Any) -> None:
-        raise NotImplementedError()
+    @abstractmethod
+    def set_value_to_object(self, object:Any) -> None: pass
 
 class IdField(AbstractField):
     def __init__(self) -> None:
         super().__init__('id', int)
 
-    def getValueFromObject(self, object:ISavable) -> None:
+    def get_value_from_object(self, object:ISavable) -> None:
         self._value = object.id 
 
-    def setValueToObject(self, object:ISavable) -> None:
+    def set_value_to_object(self, object:ISavable) -> None:
         object.id = self._value
 
 class UsernameField(AbstractField):
     def __init__(self) -> None:
         super().__init__('username', str)
 
-    def getValueFromObject(self, object:IUsernameKeySavable) -> None:
+    def get_value_from_object(self, object:IUsernameKeySavable) -> None:
         self._value = object.username
 
-    def setValueToObject(self, object:IUsernameKeySavable) -> None:
+    def set_value_to_object(self, object:IUsernameKeySavable) -> None:
         object.username = self._value
         
