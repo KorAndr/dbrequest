@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Any
+from typing import Tuple, Union, Any, override
 
 from .interfaces import ISQLRequest
 from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp
@@ -18,6 +18,7 @@ class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
     def set_replace_mode(self) -> None:
         self._is_replace = True
 
+    @override
     def set_args(
             self,
             table: str = None,
@@ -36,6 +37,7 @@ class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
         if isinstance(is_default, bool): self._is_default = is_default
         if isinstance(is_replace, bool): self._is_replace = is_replace
 
+    @override
     def get_request(self) -> Tuple[str, Tuple[Any]]:
         request: Tuple[str, str] = ()
 
@@ -67,6 +69,7 @@ class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, Lim
     def set_distinct(self) -> None:
         self._is_distinct = True
 
+    @override
     def set_args(
             self,
             table: str = None,
@@ -86,7 +89,7 @@ class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, Lim
         if order_by is not None: self.orderBy = order_by
         if limit is not None: self.limit = limit
         
-        
+    @override
     def get_request(self) -> Tuple[str]:
         distinct = ''
         if self._is_distinct:
@@ -103,6 +106,7 @@ class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
         ValuesProp.__init__(self)
         WhereProp.__init__(self)
 
+    @override
     def set_args(self, table:str=None, columns:Tuple[str]=None, values:tuple=None, where:str=None) -> None:
         if table is not None: self.table = table
         if self._table is None: raise ValueError(table)
@@ -112,6 +116,7 @@ class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
         if self._values is None: raise ValueError(values)
         if where is not None: self.where = where
 
+    @override
     def get_request(self) -> Tuple[str, Tuple[Any]]:
         request: Tuple[str, str] = ()
 
@@ -127,11 +132,13 @@ class SQLDelete(ISQLRequest, TableProp, WhereProp):
         TableProp.__init__(self)
         WhereProp.__init__(self)
 
+    @override
     def set_args(self, table:str=None, where:str=None) -> None:
         if table is not None: self.table = table
         if self._table is None: raise ValueError(table)
         if where is not None: self.where = where
 
+    @override
     def get_request(self) -> Tuple[str]:
         request_str = f'DELETE FROM {self._table}{self._where_str};'
 
@@ -141,6 +148,7 @@ class SQLCustom(ISQLRequest):
     def __init__(self) -> None:
         self._request_str:str = None
 
+    @override
     def set_args(self, request:str) -> None:
         if not isinstance(request, str):
             raise TypeError(request)
@@ -148,6 +156,7 @@ class SQLCustom(ISQLRequest):
             raise ValueError(request)
         self._request_str = request
 
+    @override
     def get_request(self) -> Tuple[str]:
         return (self._request_str, )
 
@@ -155,10 +164,12 @@ class SQLFile(ISQLRequest):
     def __init__(self) -> None:
         self._request_str = None
 
+    @override
     def set_args(self, filename:str) -> None:
         with open(filename, 'r') as file:
             self._request_str = file.read()
-                
+
+    @override                
     def get_request(self) -> Tuple[str]:
         return (self._request_str, )
 

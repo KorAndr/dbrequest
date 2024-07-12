@@ -1,19 +1,20 @@
-from enum import Enum
-from typing import Union
+__all__ = ['init']
+
+from typing import Literal, TypeAlias
 
 from ..executors.interfaces import IDatabaseExecutor
 
 
-class Executors(Enum):
-    SQLITE = 'SQLite'
+Executor: TypeAlias = Literal['sqlite', ]
 
 DATABASE_FILENAME: str = 'database.db'
-EXECUTOR: Union[Executors, IDatabaseExecutor] = Executors.SQLITE
+EXECUTOR: Executor | IDatabaseExecutor = 'sqlite'
 LOGGER_NAME: str = 'database'
 
 def init(
+        *,
         database_filename: str = 'database.db',
-        executor: Union[str, Executors, IDatabaseExecutor] = Executors.SQLITE,
+        executor: Executor | IDatabaseExecutor = 'sqlite',
         logger_name: str = 'database',
         init_script: str = None,
     ) -> None:
@@ -23,7 +24,7 @@ def init(
     global LOGGER_NAME
 
     if not isinstance(database_filename, str): raise TypeError(type(database_filename))
-    if not isinstance(executor, (str, Executors, IDatabaseExecutor)): raise TypeError(executor)
+    if not isinstance(executor, (str, IDatabaseExecutor)): raise TypeError(executor)
     if not isinstance(logger_name, str): raise TypeError(type(logger_name))
     if not isinstance(init_script, (str, type(None))): raise TypeError(type(init_script))
 
@@ -31,10 +32,7 @@ def init(
     if logger_name == '': raise ValueError(logger_name)
     if init_script is not None and init_script == '': raise ValueError(init_script)
 
-    if isinstance(executor, str):
-        executor = Executors(executor)
-    EXECUTOR = executor
-    
+    EXECUTOR = executor.lower() if isinstance(executor, str) else executor
     DATABASE_FILENAME = database_filename
     LOGGER_NAME = logger_name
 

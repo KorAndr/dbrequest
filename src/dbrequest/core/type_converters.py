@@ -1,88 +1,141 @@
-from abc import ABC, abstractmethod
-from typing import Any, override
-from datetime import datetime as Datetime, date as Date
+__all__ = [
+    'BaseDBTypeConverter',
+    'BaseJsonDBTypeConverter',
+    'BoolDBTypeConverter',
+    'ListDBTypeConverter',
+    'TupleDBTypeConverter',
+    'DictDBTypeConverter',
+    'DatetimeDBTypeConverter',
+    'DateDBTypeConverter',
+    'TimedeltaSecondsDBTypeConverter',
+]
+
+from typing import override, Callable
+from datetime import datetime as Datetime, date as Date, timedelta as Timedelta
 
 import json 
 
+from .interfaces import IDBTypeConverter, SOURCE_TYPE, DB_TYPE
 
-class AbstractDBTypeConverter(ABC):
-    def __init__(self) -> None:
-        self._TYPE: type = None
 
+class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
+    def __init__(
+            self,
+            source_type: type[SOURCE_TYPE],
+            db_type: type[DB_TYPE],
+            *,
+            to_database_func: Callable[[SOURCE_TYPE], DB_TYPE] = None,
+            from_database_func: Callable[[DB_TYPE], SOURCE_TYPE] = None
+        ) -> None:
+
+        self._source_type = source_type
+        self._db_type = db_type
+        self._to_database_func = to_database_func if to_database_func else lambda value: self._db_type(value)
+        self._from_database_func = from_database_func if from_database_func else lambda value: self._source_type(value)
+    
     @property
-    def TYPE(self) -> type:
-        return self._TYPE
+    @override
+    def source_type(self) -> type[SOURCE_TYPE]:
+        return self._source_type
 
-    @abstractmethod
-    def to_database(self, value:Any) -> Any: pass
+    @override
+    def to_database(self, value: SOURCE_TYPE) -> DB_TYPE:
+        if not isinstance(value, self._source_type):
+            raise ValueError(
+                f'TypeConverter got unexpected source type {type(value)}. '
+                f'Expected: {self._source_type}'
+            )
 
-    @abstractmethod
-    def from_database(self, value:Any) -> Any: pass
+        db_value = self._to_database_func(value)
+
+        if not isinstance(db_value, self._db_type):
+            raise ValueError(
+                f'`to_database_func` in TypeConverter `{self.__class__.__name__}` '
+                f'returned unexpected type {type(db_value)}. ' 
+                f'Expected: {self._db_type}.'
+            )
+        
+        return db_value
+    
+    @override
+    def from_database(self, value: DB_TYPE) -> SOURCE_TYPE:
+        if not isinstance(value, self._db_type):
+            raise ValueError(
+                f'TypeConverter got unexpected database type {type(value)}. ' 
+                f'Expected: {self._db_type}'
+            )
+        
+        source_value = self._from_database_func(value)
+
+        if not isinstance(source_value, self._source_type):
+            raise ValueError(
+                f'`from_database_func` in TypeConverter `{self.__class__.__name__}`'
+                f'returned unexpected type {type(source_value)}. ' 
+                f'Expected: {self._source_type}.'
+            )
+        
+        return source_value
+
+
+class BaseJsonDBTypeConverter(BaseDBTypeConverter[SOURCE_TYPE, str]):
+    def __init__(self, source_type:type[SOURCE_TYPE], **json_kwargs:dict) -> None:
+        to_database_func = lambda value: json.dumps(value, **json_kwargs)
+        from_database_func = lambda value: source_type(json.loads(value))
+        super().__init__(
+            source_type = source_type,
+            db_type = str,
+            to_database_func = to_database_func,
+            from_database_func = from_database_func
+        )
 
 # Default converters
 
-class BoolDBTypeConverter(AbstractDBTypeConverter):
+class BoolDBTypeConverter(BaseDBTypeConverter[bool, int]):
     def __init__(self) -> None:
-        self._TYPE: type = bool
+        super().__init__(source_type=bool, db_type=int)
 
-    @override
-    def to_database(self, value: bool) -> int:
-        return int(value)
+class ListDBTypeConverter(BaseJsonDBTypeConverter[list]): 
+    def __init__(self, **json_kwargs: dict) -> None:
+        super().__init__(source_type=list, **json_kwargs)
 
-    @override
-    def from_database(self, value: int) -> bool:
-        return value == 1
+class TupleDBTypeConverter(BaseJsonDBTypeConverter[tuple]):
+    def __init__(self, **json_kwargs: dict) -> None:
+        super().__init__(source_type=tuple, **json_kwargs)
 
-class DatetimeDBTypeConverter(AbstractDBTypeConverter):
+class DictDBTypeConverter(BaseJsonDBTypeConverter[dict]):
+    def __init__(self, **json_kwargs: dict) -> None:
+        super().__init__(source_type=dict, **json_kwargs)
+
+class DatetimeDBTypeConverter(BaseDBTypeConverter[Datetime, DB_TYPE]):
+    def __init__(self, db_type:type[DB_TYPE]) -> None:
+        to_database_func = lambda value: db_type(value.timestamp())
+        from_database_func = lambda value: Datetime.fromtimestamp(value)
+        super().__init__(
+            source_type = Datetime,
+            db_type = db_type,
+            to_database_func = to_database_func,
+            from_database_func = from_database_func
+        )
+
+class DateDBTypeConverter(BaseDBTypeConverter[Date, int]):
     def __init__(self) -> None:
-        self._TYPE: type = Datetime
+        to_database_func = lambda value: value.toordinal()
+        from_database_func = lambda value: Date.fromordinal(value)
+        super().__init__(
+            source_type = Date,
+            db_type = int,
+            to_database_func = to_database_func,
+            from_database_func = from_database_func
+        )
 
-    @override
-    def to_database(self, value: Datetime) -> int:
-        timestamp = value.timestamp()
-        if value.microsecond == 0:
-            timestamp = int(timestamp)
-
-        return timestamp
-
-    @override
-    def from_database(self, value: int) -> Datetime:
-        if not isinstance(value, int):
-            raise TypeError(type(value))
-        if value is not None:
-            return Datetime.fromtimestamp(value)
-
-class DateDBTypeConverter(AbstractDBTypeConverter):
+class TimedeltaSecondsDBTypeConverter(BaseDBTypeConverter[Timedelta, int]):
+    # Возможно переписать на total_seconds
     def __init__(self) -> None:
-        self._TYPE: type = Date
-
-    @override
-    def to_database(self, value: Date) -> int:
-        return value.toordinal()
-
-    @override
-    def from_database(self, value: int) -> Date:
-        if value is not None:
-            return Date.fromordinal(value)
-
-class AbstractJsonableDBTypeConverter(AbstractDBTypeConverter):
-    @override
-    def to_database(self, value: Any) -> str:
-        return json.dumps(value, ensure_ascii=False, indent=2)
-
-    @override
-    def from_database(self, value: str) -> Any:
-        if value is not None:
-            return json.loads(value)
-        
-class ListDBTypeConverter(AbstractJsonableDBTypeConverter):
-    def __init__(self) -> None:
-        self._TYPE: type = list
-
-class TupleDBTypeConverter(AbstractJsonableDBTypeConverter):
-    def __init__(self) -> None:
-        self._TYPE: type = tuple
-
-class DictDBTypeConverter(AbstractJsonableDBTypeConverter):
-    def __init__(self) -> None:
-        self._TYPE: type = dict
+        to_database_func = lambda value: value.seconds
+        from_database_func = lambda value: Timedelta(seconds=value)
+        super().__init__(
+            source_type = Timedelta,
+            db_type = int,
+            to_database_func = to_database_func,
+            from_database_func = from_database_func
+        )

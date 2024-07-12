@@ -4,13 +4,30 @@ from typing import List, Tuple, Any
 
 from ..config import config
 from ..sql_requests import SQLFile
+from ..core.interfaces import IDBTypeConverter
+from ..core.type_converters import (
+    BoolDBTypeConverter, ListDBTypeConverter, TupleDBTypeConverter, DictDBTypeConverter
+)
 from .interfaces import ISQLRequest, IDatabaseExecutor
 
 
 class SQLiteExecutor(IDatabaseExecutor):
-    def __init__(self, database_filename:str=None) -> None:
+    def __init__(self, database_filename: str = None | None) -> None:
         self._logger = logging.getLogger(config.LOGGER_NAME)
         self._database_filename = database_filename
+
+    @property
+    def supported_types(self) -> Tuple[type]:
+        return (int, float, str, bytes, type(None))
+    
+    @property
+    def default_type_converters(self) -> Tuple[IDBTypeConverter]:
+        return (
+            BoolDBTypeConverter(),
+            ListDBTypeConverter(),
+            TupleDBTypeConverter(),
+            DictDBTypeConverter(),
+        )
     
     def start(self, sql_request:ISQLRequest) -> List[Tuple[Any]]:
         if not isinstance(sql_request, ISQLRequest):
