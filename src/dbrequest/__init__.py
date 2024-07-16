@@ -5,4 +5,5 @@ from .core.interfaces import IDBRequest
 from .core.universal_requests import UniversalDBRequest
 from .core.fields import BaseField, AutoField
 from .core.type_converters import BaseDBTypeConverter
+from .exceptions import BaseDBRequestError
 

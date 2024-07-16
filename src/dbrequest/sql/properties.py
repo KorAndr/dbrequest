@@ -1,5 +1,7 @@
 from typing import Tuple, Any, Union
 
+from ..exceptions import SQLArgsError
+
 
 class TableProp:
     def __init__(self) -> None:
@@ -12,7 +14,7 @@ class TableProp:
     @table.setter
     def table(self, value:str) -> None:
         if not isinstance(value, str): raise TypeError(type(value))
-        if value == '': raise ValueError(value)
+        if value == '': raise SQLArgsError(value)
         self._table = value
 
 class ColumnsProp:
@@ -29,15 +31,15 @@ class ColumnsProp:
     def columns(self, value:Union[tuple, str]) -> None:
         if isinstance(value, tuple):
             if len(value) == 0:
-                raise ValueError(value)
+                raise SQLArgsError(value)
             for column in value:
                 if not isinstance(column, str):
-                    raise TypeError(type(column))
+                    raise SQLArgsError(type(column))
                 if column == '':
-                    raise ValueError(column)
+                    raise SQLArgsError(column)
         elif isinstance(value, str) and self.__allow_all:
             if value != '*':
-                raise ValueError(value)
+                raise SQLArgsError(value)
         else:
             raise TypeError(type(value))
         
@@ -61,7 +63,7 @@ class ValuesProp:
         if not isinstance(value, tuple):
             raise TypeError(type(value))
         if len(value) == 0:
-            raise ValueError(value)
+            raise SQLArgsError(value)
         for v in value:
             if not type(v) in self._SUPPORTED_TYPES:
                 raise TypeError(f'Type {type(v)} not in supported types: {self._SUPPORTED_TYPES}')
@@ -85,7 +87,7 @@ class WhereProp:
         if not isinstance(value, str):
             raise TypeError(type(value))
         if value == '':
-            raise ValueError(value)
+            raise SQLArgsError(value)
         self._where = value
 
     @property
@@ -108,7 +110,7 @@ class OrderByProp:
         if not isinstance(value, str):
             raise TypeError(type(value))
         if value == '':
-            raise ValueError(value)
+            raise SQLArgsError(value)
         self._order_by = value
 
     @property
@@ -130,7 +132,7 @@ class LimitProp:
     def limit(self, value:Union[int, str]) -> None:
         if isinstance(value, int):
             if value <= 0:
-                raise ValueError(value)
+                raise SQLArgsError(value)
         elif not isinstance(value, str):
             raise TypeError(type(value))
         self._limit = value

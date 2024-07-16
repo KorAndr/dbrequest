@@ -2,6 +2,7 @@ __all__ = ['init']
 
 from typing import Literal, TypeAlias
 
+from ..exceptions import ConfigError
 from ..executors.interfaces import IDatabaseExecutor
 
 
@@ -28,9 +29,9 @@ def init(
     if not isinstance(logger_name, str): raise TypeError(type(logger_name))
     if not isinstance(init_script, (str, type(None))): raise TypeError(type(init_script))
 
-    if database_filename == '': raise ValueError(database_filename)
-    if logger_name == '': raise ValueError(logger_name)
-    if init_script is not None and init_script == '': raise ValueError(init_script)
+    if database_filename == '': raise ConfigError(database_filename)
+    if logger_name == '': raise ConfigError(logger_name)
+    if init_script is not None and init_script == '': raise ConfigError(init_script)
 
     EXECUTOR = executor.lower() if isinstance(executor, str) else executor
     DATABASE_FILENAME = database_filename

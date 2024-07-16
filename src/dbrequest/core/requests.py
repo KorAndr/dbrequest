@@ -3,6 +3,7 @@ __all__ = ['BaseDBRequest']
 from typing import Tuple, List, Any
 from types import MethodType
 
+from ..exceptions import SchemaError
 from ..executors.universal_executor import UniversalExecutor
 from ..executors.interfaces import IDatabaseExecutor
 from ..sql.requests import SQLInsert, SQLSelect, SQLUpdate, SQLDelete
@@ -39,10 +40,10 @@ class BaseDBRequest(IDBRequest[MODEL]):
         )
 
         if len(key_fields) == 0:
-            raise ValueError('`key_fields` must contents at least one element.')
+            raise SchemaError('`key_fields` must contents at least one element.')
         for key_field in key_fields:
             if key_field.name not in [field.name for field in fields]:
-                raise ValueError(f'Key field "{key_field.name}" not found in `fields` tuple.')
+                raise SchemaError(f'Key field "{key_field.name}" not found in `fields` tuple.')
 
     @property
     def model_type(self) -> type[MODEL]:
@@ -114,7 +115,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
             if sort_field_name in [field.name for field in self._serializer.fields]:
                 order_by = sort_field_name
             else:
-                raise ValueError(f'Unable to sort by field name "{sort_field_name}": field not exist.')
+                raise SchemaError(f'Unable to sort by field name "{sort_field_name}": field not exist.')
         else:
             if limit is not None:
                 order_by = self._key_fields[0].name
@@ -148,7 +149,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
                     condition = f'{field.name} = \'{self._escape_sql(field.value)}\''
                     break
         else:
-            raise ValueError(f'Unable to compose SQL condition: all key fields are empty (None type).')
+            raise SchemaError(f'Unable to compose SQL condition: all key fields are empty (None type).')
 
         return condition
     

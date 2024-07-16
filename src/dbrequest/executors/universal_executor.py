@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple, Dict
 
 from ..config import config
+from ..exceptions import FactoryError
 from ..sql.interfaces import ISQLRequest
 from ..core.interfaces import IDBTypeConverter
 from .interfaces import IDatabaseExecutor
@@ -19,7 +20,7 @@ class UniversalExecutor(IDatabaseExecutor):
         else:
             self._executor = self._EXECUTORS.get(config.EXECUTOR, None)
             if self._executor is None:
-                raise ValueError(f'Unknown executor "{config.EXECUTOR}"')
+                raise FactoryError(f'Unknown executor "{config.EXECUTOR}"')
 
     def start(self, sql_request: ISQLRequest) -> List[Tuple[Any]]:
         return self._executor.start(sql_request)

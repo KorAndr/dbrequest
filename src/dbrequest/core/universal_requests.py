@@ -3,6 +3,7 @@ __all__ = ['UniversalDBRequest']
 from typing import Any, List, Tuple
 from types import MethodType
 
+from ..exceptions import FactoryError
 from .interfaces import IDBRequest, MODEL
 from .fields import BaseField
 
@@ -36,7 +37,7 @@ class UniversalDBRequest(IDBRequest[Any]):
             if isinstance(object, request.model_type):
                 break
         else:
-            raise ValueError(f'Can not find request for object type {type(object)}')
+            raise FactoryError(f'Can not find request for object type {type(object)}')
 
         return request
     

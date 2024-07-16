@@ -2,6 +2,7 @@ __all__ = ['DBSerializer']
 
 from typing import Tuple, List, Any, Dict
 
+from ..exceptions import InternalError
 from .fields import BaseField
 from .interfaces import IDBTypeConverter
 
@@ -34,7 +35,7 @@ class DBSerializer:
     
     def set_values_to_object(self, object:Any, values:Tuple[Any]) -> None:
         if len(self._fields) != len(values):
-            raise ValueError(f'Number of values ({len(self._fields)}) not equal to number of fields ({len(values)}).')
+            raise InternalError(f'Number of values ({len(self._fields)}) not equal to number of fields ({len(values)}).')
         
         data: Dict[BaseField, Any] = dict(zip(self._fields, values))
 

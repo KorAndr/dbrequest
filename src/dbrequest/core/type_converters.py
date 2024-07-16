@@ -15,6 +15,7 @@ from datetime import datetime as Datetime, date as Date, timedelta as Timedelta
 
 import json 
 
+from ..exceptions import TypeConverterError
 from .interfaces import IDBTypeConverter, SOURCE_TYPE, DB_TYPE
 
 
@@ -41,7 +42,7 @@ class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
     @override
     def to_database(self, value: SOURCE_TYPE) -> DB_TYPE:
         if not isinstance(value, self._source_type):
-            raise ValueError(
+            raise TypeConverterError(
                 f'TypeConverter got unexpected source type {type(value)}. '
                 f'Expected: {self._source_type}'
             )
@@ -49,7 +50,7 @@ class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
         db_value = self._to_database_func(value)
 
         if not isinstance(db_value, self._db_type):
-            raise ValueError(
+            raise TypeConverterError(
                 f'`to_database_func` in TypeConverter `{self.__class__.__name__}` '
                 f'returned unexpected type {type(db_value)}. ' 
                 f'Expected: {self._db_type}.'
@@ -60,7 +61,7 @@ class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
     @override
     def from_database(self, value: DB_TYPE) -> SOURCE_TYPE:
         if not isinstance(value, self._db_type):
-            raise ValueError(
+            raise TypeConverterError(
                 f'TypeConverter got unexpected database type {type(value)}. ' 
                 f'Expected: {self._db_type}'
             )
@@ -68,7 +69,7 @@ class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
         source_value = self._from_database_func(value)
 
         if not isinstance(source_value, self._source_type):
-            raise ValueError(
+            raise TypeConverterError(
                 f'`from_database_func` in TypeConverter `{self.__class__.__name__}`'
                 f'returned unexpected type {type(source_value)}. ' 
                 f'Expected: {self._source_type}.'
