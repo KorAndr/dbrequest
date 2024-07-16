@@ -16,7 +16,7 @@ from datetime import datetime as Datetime, date as Date, timedelta as Timedelta
 import json 
 
 from ..exceptions import TypeConverterError
-from .interfaces import IDBTypeConverter, SOURCE_TYPE, DB_TYPE
+from ..interfaces import IDBTypeConverter, SOURCE_TYPE, DB_TYPE
 
 
 class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):

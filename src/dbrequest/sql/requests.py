@@ -1,11 +1,13 @@
+__all__ = ['SQLInsert', 'SQLSelect', 'SQLUpdate', 'SQLDelete', 'SQLCustom', 'SQLFile']
+
 from typing import Tuple, Union, Any, override
 
 from ..exceptions import SQLArgsError
-from .interfaces import ISQLRequest
+from ..interfaces import ISQLRequest
 from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp
 
 
-ERROR = '`{obj}` parameter can not be None type.'
+ERROR_NONE = '`{obj}` parameter can not be None type.'
 ERROR_EMPTY = '`{obj}` parameter can not be empty string.'
 
 class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
@@ -33,11 +35,11 @@ class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
         ) -> None:
 
         if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR.format(obj='table'))
+        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
         if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR.format(obj='columns'))
+        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
         if values is not None: self.values = values
-        if self._values is None: raise SQLArgsError(ERROR.format(obj='values'))
+        if self._values is None: raise SQLArgsError(ERROR_NONE.format(obj='values'))
         if isinstance(is_default, bool): self._is_default = is_default
         if isinstance(is_replace, bool): self._is_replace = is_replace
 
@@ -85,9 +87,9 @@ class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, Lim
         ) -> None:
 
         if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR.format(obj='table'))
+        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
         if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR.format(obj='columns'))
+        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
         if where is not None: self.where = where
         if isinstance(is_distinct, bool): self._is_distinct = is_distinct
         if order_by is not None: self.orderBy = order_by
@@ -113,11 +115,11 @@ class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
     @override
     def set_args(self, table:str=None, columns:Tuple[str]=None, values:tuple=None, where:str=None) -> None:
         if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR.format(obj='table'))
+        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
         if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR.format(obj='columns'))
+        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
         if values is not None: self.values = values
-        if self._values is None: raise SQLArgsError(ERROR.format(obj='values'))
+        if self._values is None: raise SQLArgsError(ERROR_NONE.format(obj='values'))
         if where is not None: self.where = where
 
     @override
@@ -139,7 +141,7 @@ class SQLDelete(ISQLRequest, TableProp, WhereProp):
     @override
     def set_args(self, table:str=None, where:str=None) -> None:
         if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR.format(obj='table'))
+        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
         if where is not None: self.where = where
 
     @override

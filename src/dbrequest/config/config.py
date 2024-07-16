@@ -3,7 +3,7 @@ __all__ = ['init']
 from typing import Literal, TypeAlias
 
 from ..exceptions import ConfigError
-from ..executors.interfaces import IDatabaseExecutor
+from ..interfaces import IDatabaseExecutor
 
 
 Executor: TypeAlias = Literal['sqlite', ]
@@ -38,8 +38,8 @@ def init(
     LOGGER_NAME = logger_name
 
     if init_script is not None:
-        from ..executors.universal_executor import UniversalExecutor
-        from ..sql_requests import SQLFile
+        from ..executors import UniversalExecutor
+        from ..sql import SQLFile
 
         request = SQLFile()
         request.set_args(filename=init_script)

@@ -4,8 +4,7 @@ from typing import Any, List, Tuple
 from types import MethodType
 
 from ..exceptions import FactoryError
-from .interfaces import IDBRequest, MODEL
-from .fields import BaseField
+from ..interfaces import IDBRequest, IField, MODEL
 
 
 class UniversalDBRequest(IDBRequest[Any]):
@@ -28,7 +27,7 @@ class UniversalDBRequest(IDBRequest[Any]):
     def delete(self, object:MODEL) -> None:
         self._get_request(object).delete(object)
     
-    def load_all(self, object_sample:MODEL, *, limit:int=None, reverse:bool=True, sort_by:BaseField | str | MethodType=None) -> List[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> List[MODEL]:
         return self._get_request(object_sample).load_all(object_sample, limit, reverse, sort_by)
     
     def _get_request(self, object:MODEL) -> IDBRequest[MODEL]:

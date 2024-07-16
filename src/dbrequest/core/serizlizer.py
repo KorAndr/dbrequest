@@ -3,14 +3,13 @@ __all__ = ['DBSerializer']
 from typing import Tuple, List, Any, Dict
 
 from ..exceptions import InternalError
-from .fields import BaseField
-from .interfaces import IDBTypeConverter
+from ..interfaces import IDBTypeConverter, IField
 
 
 class DBSerializer:
     def __init__(
             self,
-            fields: Tuple[BaseField],
+            fields: Tuple[IField],
             supported_types: Tuple[type],
             type_converters: Tuple[IDBTypeConverter],
         ) -> None:
@@ -19,7 +18,7 @@ class DBSerializer:
         self._type_converters = type_converters
     
     @property
-    def fields(self) -> Tuple[BaseField]:
+    def fields(self) -> Tuple[IField]:
         return self._fields
 
     def get_params_and_values(self, object:Any) -> Tuple[Tuple[str], Tuple[Any]]:
@@ -37,13 +36,13 @@ class DBSerializer:
         if len(self._fields) != len(values):
             raise InternalError(f'Number of values ({len(self._fields)}) not equal to number of fields ({len(values)}).')
         
-        data: Dict[BaseField, Any] = dict(zip(self._fields, values))
+        data: Dict[IField, Any] = dict(zip(self._fields, values))
 
         for field in data.keys():
             self._set_field_value(field, data[field])
             field.set_value_to_object(object)
 
-    def _get_field_value(self, field:BaseField) -> Any:
+    def _get_field_value(self, field:IField) -> Any:
         value = field.value
         if not type(value) in self._supported_types:
             for converter in self._type_converters:
@@ -58,7 +57,7 @@ class DBSerializer:
 
         return value
 
-    def _set_field_value(self, field:BaseField, value:Any) -> None:
+    def _set_field_value(self, field:IField, value:Any) -> None:
         if not field.type in self._supported_types:
             for converter in self._type_converters:
                 if issubclass(converter.source_type, field.type):

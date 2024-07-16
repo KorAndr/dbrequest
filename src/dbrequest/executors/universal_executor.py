@@ -2,9 +2,7 @@ from typing import Any, List, Tuple, Dict
 
 from ..config import config
 from ..exceptions import FactoryError
-from ..sql.interfaces import ISQLRequest
-from ..core.interfaces import IDBTypeConverter
-from .interfaces import IDatabaseExecutor
+from ..interfaces import ISQLRequest, IDBTypeConverter, IDatabaseExecutor
 from .sqlite_executor import SQLiteExecutor
 
 

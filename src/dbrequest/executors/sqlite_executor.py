@@ -3,16 +3,15 @@ import logging
 from typing import List, Tuple, Any
 
 from ..config import config
-from ..sql_requests import SQLFile
-from ..core.interfaces import IDBTypeConverter
+from ..interfaces import IDBTypeConverter, ISQLRequest, IDatabaseExecutor
+from ..sql import SQLFile
 from ..core.type_converters import (
     BoolDBTypeConverter, ListDBTypeConverter, TupleDBTypeConverter, DictDBTypeConverter
 )
-from .interfaces import ISQLRequest, IDatabaseExecutor
 
 
 class SQLiteExecutor(IDatabaseExecutor):
-    def __init__(self, database_filename: str = None | None) -> None:
+    def __init__(self, database_filename: str | None = None) -> None:
         self._logger = logging.getLogger(config.LOGGER_NAME)
         self._database_filename = database_filename
 

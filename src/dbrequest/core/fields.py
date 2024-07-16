@@ -1,13 +1,11 @@
 __all__ = ['BaseField', 'AutoField']
 
-from typing import Callable, TypeVar, Generic
+from typing import Callable
 
-from .interfaces import MODEL
+from ..interfaces import IField, MODEL, FIELD_TYPE
 
 
-FIELD_TYPE = TypeVar('FIELD_TYPE')
-
-class BaseField(Generic[MODEL, FIELD_TYPE]):
+class BaseField(IField[MODEL, FIELD_TYPE]):
     def __init__(
             self,
             name: str,

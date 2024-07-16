@@ -4,12 +4,10 @@ from typing import Tuple, List, Any
 from types import MethodType
 
 from ..exceptions import SchemaError
-from ..executors.universal_executor import UniversalExecutor
-from ..executors.interfaces import IDatabaseExecutor
+from ..interfaces import IDatabaseExecutor, IDBTypeConverter, IDBRequest, IField, MODEL
+from ..executors import UniversalExecutor
 from ..sql.requests import SQLInsert, SQLSelect, SQLUpdate, SQLDelete
-from .serizlizer import DBSerializer
-from .interfaces import IDBTypeConverter, IDBRequest, MODEL
-from .fields import BaseField
+from .serizlizer import DBSerializer 
 
 
 class BaseDBRequest(IDBRequest[MODEL]):
@@ -17,8 +15,8 @@ class BaseDBRequest(IDBRequest[MODEL]):
             self,
             model_type: type[MODEL],
             table_name: str,
-            fields: Tuple[BaseField],
-            key_fields: Tuple[BaseField],
+            fields: Tuple[IField],
+            key_fields: Tuple[IField],
             *,
             executor: IDatabaseExecutor = UniversalExecutor(),
             type_converters: Tuple[IDBTypeConverter] = [],
@@ -94,7 +92,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
 
         self._executor.start(request)
 
-    def load_all(self, object_sample:MODEL, *, limit:int=None, reverse:bool=True, sort_by:BaseField | str | MethodType=None) -> List[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> List[MODEL]:
         self._check_type(object_sample)
         objects_list = []
         request = SQLSelect()
@@ -103,14 +101,14 @@ class BaseDBRequest(IDBRequest[MODEL]):
 
         if sort_by is not None:
             sort_field_name = None
-            if isinstance(sort_by, BaseField):
+            if isinstance(sort_by, IField):
                 sort_field_name = sort_by.name
             elif isinstance(sort_by, str):
                 sort_field_name = sort_by
             elif isinstance(sort_by, MethodType):
                 sort_field_name = sort_by.__name__
             else:
-                raise TypeError(f'The `sort_by` parameter might be BaseField, str` or MetodType, not {type(sort_by)}.')
+                raise TypeError(f'The `sort_by` parameter might be IField, str` or MetodType, not {type(sort_by)}.')
 
             if sort_field_name in [field.name for field in self._serializer.fields]:
                 order_by = sort_field_name
