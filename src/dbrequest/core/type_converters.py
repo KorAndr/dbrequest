@@ -25,14 +25,14 @@ class BaseTypeConverter(ITypeConverter[SOURCE_TYPE, DB_TYPE]):
             source_type: type[SOURCE_TYPE],
             db_type: type[DB_TYPE],
             *,
-            to_database_func: Callable[[SOURCE_TYPE], DB_TYPE] = None,
-            from_database_func: Callable[[DB_TYPE], SOURCE_TYPE] = None
+            to_database_func: Callable[[SOURCE_TYPE], DB_TYPE] | None = None,
+            from_database_func: Callable[[DB_TYPE], SOURCE_TYPE] | None = None,
         ) -> None:
 
         self._source_type = source_type
         self._db_type = db_type
-        self._to_database_func = to_database_func if to_database_func else lambda value: self._db_type(value)
-        self._from_database_func = from_database_func if from_database_func else lambda value: self._source_type(value)
+        self._to_database_func = to_database_func if to_database_func else lambda value: self._db_type.__call__(value)
+        self._from_database_func = from_database_func if from_database_func else lambda value: self._source_type.__call__(value)
     
     @property
     @override
@@ -79,9 +79,9 @@ class BaseTypeConverter(ITypeConverter[SOURCE_TYPE, DB_TYPE]):
 
 
 class BaseJsonTypeConverter(BaseTypeConverter[SOURCE_TYPE, str]):
-    def __init__(self, source_type:type[SOURCE_TYPE], **json_kwargs:dict) -> None:
+    def __init__(self, source_type:type[SOURCE_TYPE], **json_kwargs) -> None:
         to_database_func = lambda value: json.dumps(value, **json_kwargs)
-        from_database_func = lambda value: source_type(json.loads(value))
+        from_database_func = lambda value: source_type.__call__(json.loads(value))
         super().__init__(
             source_type = source_type,
             db_type = str,
@@ -109,7 +109,7 @@ class DictTypeConverter(BaseJsonTypeConverter[dict]):
 
 class DatetimeTypeConverter(BaseTypeConverter[Datetime, DB_TYPE]):
     def __init__(self, db_type:type[DB_TYPE]) -> None:
-        to_database_func = lambda value: db_type(value.timestamp())
+        to_database_func = lambda value: db_type.__call__(value.timestamp())
         from_database_func = lambda value: Datetime.fromtimestamp(value)
         super().__init__(
             source_type = Datetime,

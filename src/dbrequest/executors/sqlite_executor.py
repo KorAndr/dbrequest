@@ -16,11 +16,11 @@ class SQLiteExecutor(IDatabaseExecutor):
         self._database_filename = database_filename
 
     @property
-    def supported_types(self) -> tuple[type]:
+    def supported_types(self) -> tuple[type, ...]:
         return (int, float, str, bytes, type(None))
     
     @property
-    def default_type_converters(self) -> tuple[ITypeConverter]:
+    def default_type_converters(self) -> tuple[ITypeConverter, ...]:
         return (
             BoolTypeConverter(),
             ListTypeConverter(),
@@ -34,6 +34,7 @@ class SQLiteExecutor(IDatabaseExecutor):
         
         database_filename = config.DATABASE_FILENAME if self._database_filename is None else self._database_filename
         connection = None
+        response: list[Any] = []
 
         try:
             connection = sqlite3.connect(database_filename)
@@ -48,7 +49,7 @@ class SQLiteExecutor(IDatabaseExecutor):
             else:
                 cursor.execute(*request)
             
-            response = None
+            
             if request[0].split()[0].upper() == 'SELECT':
                 response = cursor.fetchall()
             

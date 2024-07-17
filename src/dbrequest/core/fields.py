@@ -2,6 +2,7 @@ __all__ = ['BaseField', 'AutoField']
 
 from typing import Callable
 
+from ..exceptions import InternalError
 from ..interfaces import IField, MODEL, FIELD_TYPE
 
 
@@ -11,8 +12,8 @@ class BaseField(IField[MODEL, FIELD_TYPE]):
             name: str,
             field_type: type[FIELD_TYPE],
             *,
-            getter: Callable[[MODEL], FIELD_TYPE] | None = None,
-            setter: Callable[[MODEL, FIELD_TYPE], None] | None = None,
+            getter: Callable[[MODEL], FIELD_TYPE],
+            setter: Callable[[MODEL, FIELD_TYPE | None], None],
             allowed_none: bool = False,
         ) -> None:
 
@@ -23,13 +24,6 @@ class BaseField(IField[MODEL, FIELD_TYPE]):
         self._setter = setter
         self._value: FIELD_TYPE | None = None
 
-        if not isinstance(name, str):
-            raise TypeError(f'`name` must be str, not {type(name)}.')
-        if not isinstance(field_type, type):
-            raise TypeError(f'`field_type` must be type, not {type(field_type)}.')
-        if not isinstance(allowed_none, bool):
-            raise TypeError(f'`allowed_none` must be bool, not {type(allowed_none)}.')
-
     @property
     def name(self) -> str:
         return self._name
@@ -39,7 +33,9 @@ class BaseField(IField[MODEL, FIELD_TYPE]):
         return self._type
     
     @property
-    def value(self) -> FIELD_TYPE:
+    def value(self) -> FIELD_TYPE | None:
+        if self._value is None and not self._allowed_none:
+            raise InternalError(self._value)
         return self._value
 
     @value.setter

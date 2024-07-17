@@ -14,9 +14,9 @@ class Serializer(Generic[MODEL]):
     '''
     def __init__(
             self,
-            fields: tuple[IField],
-            supported_types: tuple[type],
-            type_converters: tuple[ITypeConverter],
+            fields: tuple[IField, ...],
+            supported_types: tuple[type, ...],
+            type_converters: tuple[ITypeConverter, ...],
         ) -> None:
         '''
         Class constructor.
@@ -31,11 +31,11 @@ class Serializer(Generic[MODEL]):
         self._type_converters = type_converters
     
     @property
-    def fields(self) -> tuple[IField]:
+    def fields(self) -> tuple[IField, ...]:
         '''Return current `IField` objects.'''
         return self._fields
 
-    def get_params_and_values(self, object:MODEL) -> tuple[tuple[str], tuple[Any]]:
+    def get_params_and_values(self, object:MODEL) -> tuple[tuple[str, ...], tuple[Any, ...]]:
         '''Return prepared parameters and values tuples from input object for writing to the database.'''
         params_list: list[str] = [field.name for field in self._fields]
         values_list: list[Any] = []

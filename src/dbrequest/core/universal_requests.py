@@ -1,6 +1,6 @@
 __all__ = ['UniversalDBRequest']
 
-from typing import Any
+from typing import Any, no_type_check
 from types import MethodType
 
 from ..exceptions import FactoryError
@@ -12,6 +12,7 @@ class UniversalDBRequest(IDBRequest[Any]):
         self._requests = requests
 
     @property
+    @no_type_check
     def model_type(self) -> tuple[type]:
         return tuple([request.model_type for request in self._requests])
 
@@ -28,10 +29,9 @@ class UniversalDBRequest(IDBRequest[Any]):
         self._get_request(object).delete(object)
     
     def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
-        return self._get_request(object_sample).load_all(object_sample, limit, reverse, sort_by)
+        return self._get_request(object_sample).load_all(object_sample, limit=limit, reverse=reverse, sort_by=sort_by)
     
     def _get_request(self, object:MODEL) -> IDBRequest[MODEL]:
-        request: IDBRequest = None
         for request in self._requests:
             if isinstance(object, request.model_type):
                 break

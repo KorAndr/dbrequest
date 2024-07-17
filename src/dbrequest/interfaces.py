@@ -17,10 +17,7 @@ from types import MethodType
 
 class ISQLRequest(ABC):
     @abstractmethod
-    def set_args(self, *kwargs) -> None: pass
-
-    @abstractmethod
-    def get_request(self) -> tuple[str, tuple[Any]]: pass
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]: pass
 
 
 SOURCE_TYPE = TypeVar('SOURCE_TYPE')
@@ -47,10 +44,11 @@ class IDatabaseExecutor(ABC):
 
     @property
     @abstractmethod
-    def supported_types(self) -> tuple[type]: pass
+    def supported_types(self) -> tuple[type, ...]: pass
 
     @property
-    def default_type_converters(self) -> tuple[ITypeConverter]: pass
+    @abstractmethod
+    def default_type_converters(self) -> tuple[ITypeConverter, ...]: pass
 
 
 MODEL = TypeVar('MODEL')

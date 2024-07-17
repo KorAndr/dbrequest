@@ -1,94 +1,67 @@
-from typing import Any
+from typing import Any, Literal, TypeAlias
 
 from ..exceptions import SQLArgsError
 
 
+EMPTY_STRING_ERROR = '`{param}` parameter can not be empty string.'
+All: TypeAlias = Literal['*', 'all']
+
 class TableProp:
-    def __init__(self) -> None:
-        self._table: str = None
+    def __init__(self, table:str) -> None:
+        if table == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='table'))
+        self._table = table
 
     @property
     def table(self) -> str:
         return self._table
-    
-    @table.setter
-    def table(self, value:str) -> None:
-        if not isinstance(value, str): raise TypeError(type(value))
-        if value == '': raise SQLArgsError(value)
-        self._table = value
 
 class ColumnsProp:
-    def __init__(self, allow_all:bool) -> None:
-        if not isinstance(allow_all, bool): raise TypeError(type(allow_all))
+    def __init__(self, columns:tuple[str, ...] | All, *, allow_all:bool) -> None:
         self.__allow_all = allow_all
-        self._columns: tuple[str] = ()
+        self._columns = columns
+        
+        if columns in ['*', 'all'] and not allow_all:
+            raise SQLArgsError('Set `allow_all = True` for use `columns = "all"`')
+        if columns == 'all': self._columns = '*'
+
+        if isinstance(columns, tuple):
+            for column in columns:
+                if column == '':
+                    raise SQLArgsError(f'Every column in `columns` parameter can not be empty string. Current columns: {columns}.')
 
     @property
-    def columns(self) -> tuple | str:
+    def columns(self) -> tuple[str, ...] | All:
         return self._columns
-    
-    @columns.setter
-    def columns(self, value:tuple | str) -> None:
-        if isinstance(value, tuple):
-            if len(value) == 0:
-                raise SQLArgsError(value)
-            for column in value:
-                if not isinstance(column, str):
-                    raise SQLArgsError(type(column))
-                if column == '':
-                    raise SQLArgsError(column)
-        elif isinstance(value, str) and self.__allow_all:
-            if value != '*':
-                raise SQLArgsError(value)
-        else:
-            raise TypeError(type(value))
-        
-        self._columns = value
 
     @property
     def _columns_str(self) -> str:
         return ', '.join(self._columns)
 
 class ValuesProp:
-    def __init__(self) -> None:
-        self._values: tuple[Any] = None
-        self._SUPPORTED_TYPES = (int, float, str, bytes, type(None))
+    def __init__(self, values: tuple[Any, ...], *, supported_types: tuple[type] | None = None) -> None:
+        self._values = values
+        
+        if supported_types:
+            for value in values:
+                if not type(value) in supported_types:
+                    raise SQLArgsError(f'Type {type(value)} not supported by current database: {supported_types}.')
 
     @property
-    def values(self) -> tuple[Any]:
+    def values(self) -> tuple[Any, ...]:
         return self._values
-    
-    @values.setter
-    def values(self, value:tuple[Any]) -> None:
-        if not isinstance(value, tuple):
-            raise TypeError(type(value))
-        if len(value) == 0:
-            raise SQLArgsError(value)
-        for v in value:
-            if not type(v) in self._SUPPORTED_TYPES:
-                raise TypeError(f'Type {type(v)} not in supported types: {self._SUPPORTED_TYPES}')
-            
-        self._values = value
 
     @property
     def _values_template(self) -> str:
         return ', '.join(['?'] * len(self._values))
 
 class WhereProp:
-    def __init__(self) -> None:
-        self._where:str = None
+    def __init__(self, where: str | None) -> None:
+        if where == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='where'))
+        self._where = where
 
     @property
-    def where(self) -> str:
+    def where(self) -> str | None:
         return self._where
-    
-    @where.setter
-    def where(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise SQLArgsError(value)
-        self._where = value
 
     @property
     def _where_str(self) -> str:
@@ -98,20 +71,13 @@ class WhereProp:
         return where_str
 
 class OrderByProp:
-    def __init__(self) -> None:
-        self._order_by: str = None
+    def __init__(self, order_by: str | None) -> None:
+        if order_by == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='order_by'))
+        self._order_by = order_by
 
     @property
-    def order_by(self) -> str:
+    def order_by(self) -> str | None:
         return self._order_by
-    
-    @order_by.setter
-    def order_by(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise SQLArgsError(value)
-        self._order_by = value
 
     @property
     def _order_str(self) -> str:
@@ -121,21 +87,16 @@ class OrderByProp:
         return order_str
 
 class LimitProp:
-    def __init__(self) -> None:
-        self._limit: int | str = None
+    def __init__(self, limit:int | str | None) -> None:
+        if isinstance(limit, int):
+            if limit <= 0:
+                raise SQLArgsError(f'`limit` parameter must be positive int. Current limit: {limit}.')
+        
+        self._limit = limit
 
     @property
-    def limit(self) -> int | str:
+    def limit(self) -> int | str | None:
         return self._limit
-    
-    @limit.setter
-    def limit(self, value:int | str) -> None:
-        if isinstance(value, int):
-            if value <= 0:
-                raise SQLArgsError(value)
-        elif not isinstance(value, str):
-            raise TypeError(type(value))
-        self._limit = value
 
     @property
     def _limit_str(self) -> str:

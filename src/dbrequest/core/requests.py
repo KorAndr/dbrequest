@@ -14,11 +14,11 @@ class BaseDBRequest(IDBRequest[MODEL]):
             self,
             model_type: type[MODEL],
             table_name: str,
-            fields: tuple[IField],
-            key_fields: tuple[IField],
+            fields: tuple[IField, ...],
+            key_fields: tuple[IField, ...],
             *,
             executor: IDatabaseExecutor = UniversalExecutor(),
-            type_converters: tuple[ITypeConverter] = [],
+            type_converters: tuple[ITypeConverter, ...] = (),
             replace_type_converters: bool = False,
         ) -> None:
         
@@ -30,7 +30,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         if not replace_type_converters:
             type_converters = tuple(list(type_converters) + list(executor.default_type_converters))
 
-        self._serializer = Serializer(
+        self._serializer = Serializer[MODEL](
             fields = fields,
             supported_types = executor.supported_types,
             type_converters = type_converters,
@@ -51,8 +51,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         
         params, values = self._serializer.get_params_and_values(object)
 
-        request = SQLInsert()
-        request.set_args(table=self._table_name, columns=params, values=values)
+        request = SQLInsert(self._table_name, columns=params, values=values)
         self._executor.start(request)
         
     def load(self, object:MODEL) -> bool:
@@ -60,13 +59,12 @@ class BaseDBRequest(IDBRequest[MODEL]):
         is_found = False
         condition = self._get_key_field_condition(object)
         
-        request = SQLSelect()
-        request.set_args(table=self._table_name, columns='*', where=condition, limit=1)
+        request = SQLSelect(self._table_name, columns='*', where=condition, limit=1)
         response = self._executor.start(request)
 
         if len(response) > 0:
             is_found = True
-            values: list = response[0]
+            values = response[0]
             self._serializer.set_values_to_object(object, values)
         
         return is_found
@@ -77,24 +75,19 @@ class BaseDBRequest(IDBRequest[MODEL]):
         
         params, values = self._serializer.get_params_and_values(object)
 
-        request = SQLUpdate()
-        request.set_args(table=self._table_name, columns=params, values=values, where=condition)
-
+        request = SQLUpdate(self._table_name, columns=params, values=values, where=condition)
         self._executor.start(request)
         
     def delete(self, object:MODEL) -> None:
         self._check_type(object)
         condition = self._get_key_field_condition(object)
         
-        request = SQLDelete()
-        request.set_args(table=self._table_name, where=condition)
-
+        request = SQLDelete(self._table_name, where=condition)
         self._executor.start(request)
 
     def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
         self._check_type(object_sample)
         objects_list = []
-        request = SQLSelect()
 
         order_by = None
 
@@ -120,8 +113,8 @@ class BaseDBRequest(IDBRequest[MODEL]):
         if order_by is not None:
             if reverse:
                 order_by += ' DESC' 
-
-        request.set_args(table=self._table_name, columns='*', order_by=order_by, limit=limit)
+        
+        request = SQLSelect(self._table_name, columns='*', order_by=order_by, limit=limit)
         table = self._executor.start(request)
         
         for row in table:
@@ -133,7 +126,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
 
     def _check_type(self, object:MODEL) -> None:
         if not isinstance(object, self._model_type):
-            raise TypeError(f'Got unexpected model object type {type(object)}. Expected: {MODEL}.')
+            raise TypeError(f'Got unexpected model object type {type(object)}. Expected: {self._model_type}.')
 
     def _get_key_field_condition(self, object:MODEL) -> str:
         condition = ''

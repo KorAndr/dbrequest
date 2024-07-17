@@ -4,19 +4,24 @@ from typing import Any, override
 
 from ..exceptions import SQLArgsError
 from ..interfaces import ISQLRequest
-from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp
+from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp, All
 
-
-ERROR_NONE = '`{obj}` parameter can not be None type.'
-ERROR_EMPTY = '`{obj}` parameter can not be empty string.'
 
 class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=False)
-        ValuesProp.__init__(self)
-        self._is_default = False
-        self._is_replace = False
+    def __init__(
+            self,
+            table: str,
+            *,
+            columns: tuple[str, ...],
+            values: tuple[Any, ...],
+            is_default: bool = False,
+            is_replace: bool = False,
+        ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=False)
+        ValuesProp.__init__(self, values)
+        self._is_default = is_default
+        self._is_replace = is_replace
 
     def set_default_values(self) -> None:
         self._is_default = True
@@ -25,27 +30,8 @@ class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
         self._is_replace = True
 
     @override
-    def set_args(
-            self,
-            table: str | None = None,
-            columns: tuple[str] | None = None,
-            values: tuple[Any] | None = None,
-            is_default: bool | None = None,
-            is_replace: bool | None = None
-        ) -> None:
-
-        if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
-        if values is not None: self.values = values
-        if self._values is None: raise SQLArgsError(ERROR_NONE.format(obj='values'))
-        if isinstance(is_default, bool): self._is_default = is_default
-        if isinstance(is_replace, bool): self._is_replace = is_replace
-
-    @override
-    def get_request(self) -> tuple[str, tuple[Any]]:
-        request: tuple[str, str] = ()
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]:
+        request: tuple[str, tuple[Any]] | tuple[str]
 
         command = 'INSERT'
         if self._is_replace:
@@ -59,41 +45,30 @@ class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
         else:
             request_str += f'VALUES ({self._values_template});'
 
-            request = (request_str, self._values)
+            request = (request_str, self.values)
 
         return request
     
 class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, LimitProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=True)
-        WhereProp.__init__(self)
-        OrderByProp.__init__(self)
-        LimitProp.__init__(self)
-        self._is_distinct: bool = False 
+    def __init__(
+            self,
+            table: str,
+            *,
+            columns: tuple[str, ...] | All,
+            where: str | None = None,
+            is_distinct: bool | None = None,
+            order_by: str | None = None,
+            limit: int | str | None = None,
+        ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=True)
+        WhereProp.__init__(self, where)
+        OrderByProp.__init__(self, order_by)
+        LimitProp.__init__(self, limit)
+        self._is_distinct = is_distinct 
 
     def set_distinct(self) -> None:
         self._is_distinct = True
-
-    @override
-    def set_args(
-            self,
-            table: str = None,
-            columns: tuple[str] | str = None,
-            where: str = None,
-            is_distinct: bool = None,
-            order_by: str = None,
-            limit: int | str = None
-        ) -> None:
-
-        if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
-        if where is not None: self.where = where
-        if isinstance(is_distinct, bool): self._is_distinct = is_distinct
-        if order_by is not None: self.orderBy = order_by
-        if limit is not None: self.limit = limit
         
     @override
     def get_request(self) -> tuple[str]:
@@ -106,26 +81,21 @@ class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, Lim
         return (request_str, )
 
 class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=False)
-        ValuesProp.__init__(self)
-        WhereProp.__init__(self)
-
-    @override
-    def set_args(self, table:str=None, columns:tuple[str]=None, values:tuple=None, where:str=None) -> None:
-        if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise SQLArgsError(ERROR_NONE.format(obj='columns'))
-        if values is not None: self.values = values
-        if self._values is None: raise SQLArgsError(ERROR_NONE.format(obj='values'))
-        if where is not None: self.where = where
+    def __init__(
+            self,
+            table: str,
+            *,
+            columns: tuple[str, ...],
+            values: tuple[Any, ...],
+            where: str | None = None,
+        ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=False)
+        ValuesProp.__init__(self, values)
+        WhereProp.__init__(self, where)
 
     @override
     def get_request(self) -> tuple[str, tuple[Any]]:
-        request: tuple[str, str] = ()
-
         columns_and_values = ', '.join([f'{column} = ?' for column in self._columns])
         request_str = f'UPDATE {self._table} SET {columns_and_values}{self._where_str};'
 
@@ -134,15 +104,9 @@ class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
         return request
 
 class SQLDelete(ISQLRequest, TableProp, WhereProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        WhereProp.__init__(self)
-
-    @override
-    def set_args(self, table:str=None, where:str=None) -> None:
-        if table is not None: self.table = table
-        if self._table is None: raise SQLArgsError(ERROR_NONE.format(obj='table'))
-        if where is not None: self.where = where
+    def __init__(self, table:str, where:str | None = None) -> None:
+        TableProp.__init__(self, table)
+        WhereProp.__init__(self, where)
 
     @override
     def get_request(self) -> tuple[str]:
@@ -151,29 +115,23 @@ class SQLDelete(ISQLRequest, TableProp, WhereProp):
         return (request_str, )
 
 class SQLCustom(ISQLRequest):
-    def __init__(self) -> None:
-        self._request_str:str = None
+    def __init__(self, request_str:str) -> None:
+        if request_str == '':
+            raise SQLArgsError('`request_str` parameter can not be empty string.')
 
-    @override
-    def set_args(self, request:str) -> None:
-        if not isinstance(request, str):
-            raise TypeError(request)
-        if request == '':
-            raise SQLArgsError(ERROR_EMPTY.format(obj='request'))
-        self._request_str = request
+        self._request_str = request_str
 
     @override
     def get_request(self) -> tuple[str]:
         return (self._request_str, )
 
 class SQLFile(ISQLRequest):
-    def __init__(self) -> None:
-        self._request_str = None
+    def __init__(self, file_name:str) -> None:
+        with open(file_name, 'r') as file:
+            self._request_str = file.read()  
 
-    @override
-    def set_args(self, filename:str) -> None:
-        with open(filename, 'r') as file:
-            self._request_str = file.read()
+        if ';' not in self._request_str:
+            raise SQLArgsError(f'`{file_name}` file doesn\'t contains complete SQL request because ";" not in file.')      
 
     @override                
     def get_request(self) -> tuple[str]:
