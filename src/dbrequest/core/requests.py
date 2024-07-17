@@ -6,7 +6,7 @@ from ..exceptions import SchemaError
 from ..interfaces import IDatabaseExecutor, ITypeConverter, IDBRequest, IField, MODEL
 from ..executors import UniversalExecutor
 from ..sql.requests import SQLInsert, SQLSelect, SQLUpdate, SQLDelete
-from .serizlizer import Serializer 
+from .serializer import Serializer 
 
 
 class BaseDBRequest(IDBRequest[MODEL]):
