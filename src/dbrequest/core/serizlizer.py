@@ -1,12 +1,12 @@
 __all__ = ['Serializer']
 
-from typing import Tuple, List, Any, Dict
+from typing import Tuple, List, Any, Dict, Generic
 
 from ..exceptions import InternalError
-from ..interfaces import ITypeConverter, IField
+from ..interfaces import ITypeConverter, IField, MODEL
 
 
-class Serializer:
+class Serializer(Generic[MODEL]):
     '''
     Retrieve values from `IField` objects and prepare for writing to the database.
     Prepare values from the database for saving to `IField` objects.
@@ -35,7 +35,7 @@ class Serializer:
         '''Return current `IField` objects.'''
         return self._fields
 
-    def get_params_and_values(self, object:Any) -> Tuple[Tuple[str], Tuple[Any]]:
+    def get_params_and_values(self, object:MODEL) -> Tuple[Tuple[str], Tuple[Any]]:
         '''Return prepared parameters and values tuples from input object for writing to the database.'''
         params_list: List[str] = [field.name for field in self._fields]
         values_list: List[Any] = []
@@ -47,7 +47,7 @@ class Serializer:
         
         return tuple(params_list), tuple(values_list)
     
-    def set_values_to_object(self, object:Any, values:Tuple[Any]) -> None:
+    def set_values_to_object(self, object:MODEL, values:Tuple[Any]) -> None:
         '''Prepare and set values from database to object.'''
         if len(self._fields) != len(values):
             raise InternalError(f'Number of values ({len(self._fields)}) not equal to number of fields ({len(values)}).')
