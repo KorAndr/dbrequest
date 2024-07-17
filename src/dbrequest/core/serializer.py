@@ -8,7 +8,7 @@ from ..interfaces import ITypeConverter, IField, MODEL
 
 class Serializer(Generic[MODEL]):
     '''
-    Internal library class
+    Internal library class.
 
     - Retrieve values from `IField` objects and prepare for writing to the database.
     - Prepare values from the database for saving to `IField` objects.
