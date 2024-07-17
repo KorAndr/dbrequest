@@ -62,6 +62,8 @@ class AutoField(BaseField[MODEL, FIELD_TYPE]):
 
     Use it if the column name and the model class attribute (field or property) completely identical.
 
+    Generic[MODEL, FIELD_TYPE]
+
     Example:
     ```
     class Model:

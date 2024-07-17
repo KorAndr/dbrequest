@@ -108,7 +108,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         request = SQLDelete(self._table_name, where=condition)
         self._executor.start(request)
 
-    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
         self._check_type(object_sample)
         objects_list = []
 

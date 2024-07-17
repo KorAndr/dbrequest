@@ -68,7 +68,8 @@ class Serializer(Generic[MODEL]):
         if not type(value) in self._supported_types:
             for converter in self._type_converters:
                 if issubclass(field.type, converter.source_type):
-                    value = converter.to_database(value)
+                    if not value is None:
+                        value = converter.to_database(value)
                     break
             else:
                 raise TypeError(
@@ -83,7 +84,8 @@ class Serializer(Generic[MODEL]):
         if not field.type in self._supported_types:
             for converter in self._type_converters:
                 if issubclass(converter.source_type, field.type):
-                    value = converter.from_database(value)
+                    if not value is None:
+                        value = converter.from_database(value)
                     break
             else:
                 raise TypeError(

@@ -35,7 +35,7 @@ if __name__ == '__main__':
     user = User(username='simple_user')
     user_db_request.save(user)
 
-    user: User = user_db_request.load_all(User(), limit=1)[0]
+    user: User = user_db_request.load_all(User(), limit=1, reverse=True)[0]
     print(user.id)
 
     same_user = User(id=user.id)

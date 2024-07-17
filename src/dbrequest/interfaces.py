@@ -148,7 +148,7 @@ class IDBRequest(ABC, Generic[MODEL]):
         object_sample: MODEL,
         *,
         limit: int | None = None,
-        reverse: bool = True,
+        reverse: bool = False,
         sort_by: IField | str | MethodType | None = None
     ) -> list[MODEL]:
         '''
