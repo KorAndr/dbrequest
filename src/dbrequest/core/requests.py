@@ -1,6 +1,5 @@
 __all__ = ['BaseDBRequest']
 
-from typing import Tuple, List, Any
 from types import MethodType
 
 from ..exceptions import SchemaError
@@ -15,11 +14,11 @@ class BaseDBRequest(IDBRequest[MODEL]):
             self,
             model_type: type[MODEL],
             table_name: str,
-            fields: Tuple[IField],
-            key_fields: Tuple[IField],
+            fields: tuple[IField],
+            key_fields: tuple[IField],
             *,
             executor: IDatabaseExecutor = UniversalExecutor(),
-            type_converters: Tuple[ITypeConverter] = [],
+            type_converters: tuple[ITypeConverter] = [],
             replace_type_converters: bool = False,
         ) -> None:
         
@@ -92,7 +91,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
 
         self._executor.start(request)
 
-    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> List[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
         self._check_type(object_sample)
         objects_list = []
         request = SQLSelect()
@@ -132,7 +131,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
 
         return objects_list
 
-    def _check_type(self, object:Any) -> None:
+    def _check_type(self, object:MODEL) -> None:
         if not isinstance(object, self._model_type):
             raise TypeError(f'Got unexpected model object type {type(object)}. Expected: {MODEL}.')
 

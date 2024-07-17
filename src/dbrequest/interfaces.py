@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Any, List, TypeVar, Generic
+from typing import Any, TypeVar, Generic
 from types import MethodType
 
 
@@ -20,7 +20,7 @@ class ISQLRequest(ABC):
     def set_args(self, *kwargs) -> None: pass
 
     @abstractmethod
-    def get_request(self) -> Tuple[str, Tuple[Any]]: pass
+    def get_request(self) -> tuple[str, tuple[Any]]: pass
 
 
 SOURCE_TYPE = TypeVar('SOURCE_TYPE')
@@ -43,14 +43,14 @@ class IDatabaseExecutor(ABC):
     def __init__(self, database_filename: str | None = None) -> None: pass
 
     @abstractmethod
-    def start(self, sql_request:ISQLRequest) -> List[Tuple[Any]]: pass
+    def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]: pass
 
     @property
     @abstractmethod
-    def supported_types(self) -> Tuple[type]: pass
+    def supported_types(self) -> tuple[type]: pass
 
     @property
-    def default_type_converters(self) -> Tuple[ITypeConverter]: pass
+    def default_type_converters(self) -> tuple[ITypeConverter]: pass
 
 
 MODEL = TypeVar('MODEL')
@@ -105,6 +105,6 @@ class IDBRequest(ABC, Generic[MODEL]):
         limit: int | None = None,
         reverse: bool = True,
         sort_by: IField | str | MethodType | None = None
-    ) -> List[MODEL]:
+    ) -> list[MODEL]:
         pass
     

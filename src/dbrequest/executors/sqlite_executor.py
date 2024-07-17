@@ -1,6 +1,6 @@
 import sqlite3
 import logging
-from typing import List, Tuple, Any
+from typing import Any
 
 from ..config import config
 from ..interfaces import ITypeConverter, ISQLRequest, IDatabaseExecutor
@@ -16,11 +16,11 @@ class SQLiteExecutor(IDatabaseExecutor):
         self._database_filename = database_filename
 
     @property
-    def supported_types(self) -> Tuple[type]:
+    def supported_types(self) -> tuple[type]:
         return (int, float, str, bytes, type(None))
     
     @property
-    def default_type_converters(self) -> Tuple[ITypeConverter]:
+    def default_type_converters(self) -> tuple[ITypeConverter]:
         return (
             BoolTypeConverter(),
             ListTypeConverter(),
@@ -28,7 +28,7 @@ class SQLiteExecutor(IDatabaseExecutor):
             DictTypeConverter(),
         )
     
-    def start(self, sql_request:ISQLRequest) -> List[Tuple[Any]]:
+    def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]:
         if not isinstance(sql_request, ISQLRequest):
             raise TypeError(type(sql_request))
         

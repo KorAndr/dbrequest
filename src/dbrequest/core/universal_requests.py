@@ -1,6 +1,6 @@
 __all__ = ['UniversalDBRequest']
 
-from typing import Any, List, Tuple
+from typing import Any
 from types import MethodType
 
 from ..exceptions import FactoryError
@@ -8,7 +8,7 @@ from ..interfaces import IDBRequest, IField, MODEL
 
 
 class UniversalDBRequest(IDBRequest[Any]):
-    def __init__(self, requests: Tuple[IDBRequest]) -> None:
+    def __init__(self, requests: tuple[IDBRequest]) -> None:
         self._requests = requests
 
     @property
@@ -27,7 +27,7 @@ class UniversalDBRequest(IDBRequest[Any]):
     def delete(self, object:MODEL) -> None:
         self._get_request(object).delete(object)
     
-    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> List[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=True, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
         return self._get_request(object_sample).load_all(object_sample, limit, reverse, sort_by)
     
     def _get_request(self, object:MODEL) -> IDBRequest[MODEL]:

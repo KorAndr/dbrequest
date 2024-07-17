@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Dict
+from typing import Any
 
 from ..config import config
 from ..exceptions import FactoryError
@@ -8,7 +8,7 @@ from .sqlite_executor import SQLiteExecutor
 
 class UniversalExecutor(IDatabaseExecutor):
     def __init__(self, database_filename: str | None = None) -> None:
-        self._EXECUTORS: Dict[config.Executor, IDatabaseExecutor] = {
+        self._EXECUTORS: dict[config.Executor, IDatabaseExecutor] = {
             'sqlite': SQLiteExecutor(database_filename),
         }
         self._executor: IDatabaseExecutor = None
@@ -20,15 +20,15 @@ class UniversalExecutor(IDatabaseExecutor):
             if self._executor is None:
                 raise FactoryError(f'Unknown executor "{config.EXECUTOR}"')
 
-    def start(self, sql_request: ISQLRequest) -> List[Tuple[Any]]:
+    def start(self, sql_request: ISQLRequest) -> list[tuple[Any]]:
         return self._executor.start(sql_request)
     
     @property
-    def supported_types(self) -> Tuple[type]:
+    def supported_types(self) -> tuple[type]:
         return self._executor.supported_types
     
     @property
-    def default_type_converters(self) -> Tuple[ITypeConverter]:
+    def default_type_converters(self) -> tuple[ITypeConverter]:
         return self._executor.default_type_converters
     
     

@@ -1,4 +1,4 @@
-from typing import Tuple, Any, Union
+from typing import Any
 
 from ..exceptions import SQLArgsError
 
@@ -21,14 +21,14 @@ class ColumnsProp:
     def __init__(self, allow_all:bool) -> None:
         if not isinstance(allow_all, bool): raise TypeError(type(allow_all))
         self.__allow_all = allow_all
-        self._columns: Tuple[str] = ()
+        self._columns: tuple[str] = ()
 
     @property
-    def columns(self) -> Union[tuple, str]:
+    def columns(self) -> tuple | str:
         return self._columns
     
     @columns.setter
-    def columns(self, value:Union[tuple, str]) -> None:
+    def columns(self, value:tuple | str) -> None:
         if isinstance(value, tuple):
             if len(value) == 0:
                 raise SQLArgsError(value)
@@ -51,15 +51,15 @@ class ColumnsProp:
 
 class ValuesProp:
     def __init__(self) -> None:
-        self._values: Tuple[Any] = None
+        self._values: tuple[Any] = None
         self._SUPPORTED_TYPES = (int, float, str, bytes, type(None))
 
     @property
-    def values(self) -> Tuple[Any]:
+    def values(self) -> tuple[Any]:
         return self._values
     
     @values.setter
-    def values(self, value:Tuple[Any]) -> None:
+    def values(self, value:tuple[Any]) -> None:
         if not isinstance(value, tuple):
             raise TypeError(type(value))
         if len(value) == 0:
@@ -122,14 +122,14 @@ class OrderByProp:
 
 class LimitProp:
     def __init__(self) -> None:
-        self._limit: Union[int, str] = None
+        self._limit: int | str = None
 
     @property
-    def limit(self) -> Union[int, str]:
+    def limit(self) -> int | str:
         return self._limit
     
     @limit.setter
-    def limit(self, value:Union[int, str]) -> None:
+    def limit(self, value:int | str) -> None:
         if isinstance(value, int):
             if value <= 0:
                 raise SQLArgsError(value)

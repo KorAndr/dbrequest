@@ -1,6 +1,6 @@
 __all__ = ['Serializer']
 
-from typing import Tuple, List, Any, Dict, Generic
+from typing import Any, Generic
 
 from ..exceptions import InternalError
 from ..interfaces import ITypeConverter, IField, MODEL
@@ -14,9 +14,9 @@ class Serializer(Generic[MODEL]):
     '''
     def __init__(
             self,
-            fields: Tuple[IField],
-            supported_types: Tuple[type],
-            type_converters: Tuple[ITypeConverter],
+            fields: tuple[IField],
+            supported_types: tuple[type],
+            type_converters: tuple[ITypeConverter],
         ) -> None:
         '''
         Class constructor.
@@ -31,14 +31,14 @@ class Serializer(Generic[MODEL]):
         self._type_converters = type_converters
     
     @property
-    def fields(self) -> Tuple[IField]:
+    def fields(self) -> tuple[IField]:
         '''Return current `IField` objects.'''
         return self._fields
 
-    def get_params_and_values(self, object:MODEL) -> Tuple[Tuple[str], Tuple[Any]]:
+    def get_params_and_values(self, object:MODEL) -> tuple[tuple[str], tuple[Any]]:
         '''Return prepared parameters and values tuples from input object for writing to the database.'''
-        params_list: List[str] = [field.name for field in self._fields]
-        values_list: List[Any] = []
+        params_list: list[str] = [field.name for field in self._fields]
+        values_list: list[Any] = []
 
         for field in self._fields:
             field.get_value_from_object(object)
@@ -47,12 +47,12 @@ class Serializer(Generic[MODEL]):
         
         return tuple(params_list), tuple(values_list)
     
-    def set_values_to_object(self, object:MODEL, values:Tuple[Any]) -> None:
+    def set_values_to_object(self, object:MODEL, values:tuple[Any]) -> None:
         '''Prepare and set values from database to object.'''
         if len(self._fields) != len(values):
             raise InternalError(f'Number of values ({len(self._fields)}) not equal to number of fields ({len(values)}).')
         
-        data: Dict[IField, Any] = dict(zip(self._fields, values))
+        data: dict[IField, Any] = dict(zip(self._fields, values))
 
         for field in data.keys():
             self._set_field_value(field, data[field])

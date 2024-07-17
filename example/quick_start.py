@@ -1,8 +1,6 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'src'))
 
-from typing import Tuple
-
 import dbrequest
 from dbrequest import BaseDBRequest, AutoField
 
@@ -51,7 +49,7 @@ if __name__ == '__main__':
     admin.last_message = 'Do you want to be banned?'
     user_db_request.save(admin)
 
-    users: Tuple[User] = user_db_request.load_all(User())
+    users: tuple[User] = user_db_request.load_all(User())
     for user in users:
         print(f'The user who said "{user.last_message}" has been deleted')
         user_db_request.delete(user)
