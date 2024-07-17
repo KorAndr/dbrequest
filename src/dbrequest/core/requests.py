@@ -4,10 +4,10 @@ from typing import Tuple, List, Any
 from types import MethodType
 
 from ..exceptions import SchemaError
-from ..interfaces import IDatabaseExecutor, IDBTypeConverter, IDBRequest, IField, MODEL
+from ..interfaces import IDatabaseExecutor, ITypeConverter, IDBRequest, IField, MODEL
 from ..executors import UniversalExecutor
 from ..sql.requests import SQLInsert, SQLSelect, SQLUpdate, SQLDelete
-from .serizlizer import DBSerializer 
+from .serizlizer import Serializer 
 
 
 class BaseDBRequest(IDBRequest[MODEL]):
@@ -19,7 +19,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
             key_fields: Tuple[IField],
             *,
             executor: IDatabaseExecutor = UniversalExecutor(),
-            type_converters: Tuple[IDBTypeConverter] = [],
+            type_converters: Tuple[ITypeConverter] = [],
             replace_type_converters: bool = False,
         ) -> None:
         
@@ -31,7 +31,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         if not replace_type_converters:
             type_converters = tuple(list(type_converters) + list(executor.default_type_converters))
 
-        self._serializer = DBSerializer(
+        self._serializer = Serializer(
             fields = fields,
             supported_types = executor.supported_types,
             type_converters = type_converters,

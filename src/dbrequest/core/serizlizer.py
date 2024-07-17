@@ -1,22 +1,22 @@
-__all__ = ['DBSerializer']
+__all__ = ['Serializer']
 
 from typing import Tuple, List, Any, Dict
 
 from ..exceptions import InternalError
-from ..interfaces import IDBTypeConverter, IField
+from ..interfaces import ITypeConverter, IField
 
 
-class DBSerializer:
+class Serializer:
     '''
     Retrieve values from `IField` objects and prepare for writing to the database.
     Prepare values from the database for saving to `IField` objects.
-    Convert unsupported values using `IDBTypeConverter` objects.
+    Convert unsupported values using `ITypeConverter` objects.
     '''
     def __init__(
             self,
             fields: Tuple[IField],
             supported_types: Tuple[type],
-            type_converters: Tuple[IDBTypeConverter],
+            type_converters: Tuple[ITypeConverter],
         ) -> None:
         '''
         Class constructor.
@@ -24,7 +24,7 @@ class DBSerializer:
         Positional arguments:
         :param fields: `IField` objects in the order in which parameters are declared in the database
         :param supported_types: types supported by a specific database
-        :param type_converters: `IDBTypeConverter` objects for converting unsupported types
+        :param type_converters: `ITypeConverter` objects for converting unsupported types
         '''
         self._fields = fields
         self._supported_types = supported_types

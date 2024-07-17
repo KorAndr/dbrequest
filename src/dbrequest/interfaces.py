@@ -1,6 +1,6 @@
 __all__ = [
     'ISQLRequest',
-    'IDBTypeConverter',
+    'ITypeConverter',
     'IDatabaseExecutor',
     'IField',
     'IDBRequest',
@@ -26,7 +26,7 @@ class ISQLRequest(ABC):
 SOURCE_TYPE = TypeVar('SOURCE_TYPE')
 DB_TYPE = TypeVar('DB_TYPE')
 
-class IDBTypeConverter(ABC, Generic[SOURCE_TYPE, DB_TYPE]):
+class ITypeConverter(ABC, Generic[SOURCE_TYPE, DB_TYPE]):
     @property
     @abstractmethod
     def source_type(self) -> type[SOURCE_TYPE]: pass
@@ -50,7 +50,7 @@ class IDatabaseExecutor(ABC):
     def supported_types(self) -> Tuple[type]: pass
 
     @property
-    def default_type_converters(self) -> Tuple[IDBTypeConverter]: pass
+    def default_type_converters(self) -> Tuple[ITypeConverter]: pass
 
 
 MODEL = TypeVar('MODEL')

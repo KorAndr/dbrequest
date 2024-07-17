@@ -3,10 +3,10 @@ import logging
 from typing import List, Tuple, Any
 
 from ..config import config
-from ..interfaces import IDBTypeConverter, ISQLRequest, IDatabaseExecutor
+from ..interfaces import ITypeConverter, ISQLRequest, IDatabaseExecutor
 from ..sql import SQLFile
 from ..core.type_converters import (
-    BoolDBTypeConverter, ListDBTypeConverter, TupleDBTypeConverter, DictDBTypeConverter
+    BoolTypeConverter, ListTypeConverter, TupleTypeConverter, DictTypeConverter
 )
 
 
@@ -20,12 +20,12 @@ class SQLiteExecutor(IDatabaseExecutor):
         return (int, float, str, bytes, type(None))
     
     @property
-    def default_type_converters(self) -> Tuple[IDBTypeConverter]:
+    def default_type_converters(self) -> Tuple[ITypeConverter]:
         return (
-            BoolDBTypeConverter(),
-            ListDBTypeConverter(),
-            TupleDBTypeConverter(),
-            DictDBTypeConverter(),
+            BoolTypeConverter(),
+            ListTypeConverter(),
+            TupleTypeConverter(),
+            DictTypeConverter(),
         )
     
     def start(self, sql_request:ISQLRequest) -> List[Tuple[Any]]:

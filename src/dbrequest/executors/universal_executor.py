@@ -2,7 +2,7 @@ from typing import Any, List, Tuple, Dict
 
 from ..config import config
 from ..exceptions import FactoryError
-from ..interfaces import ISQLRequest, IDBTypeConverter, IDatabaseExecutor
+from ..interfaces import ISQLRequest, ITypeConverter, IDatabaseExecutor
 from .sqlite_executor import SQLiteExecutor
 
 
@@ -28,7 +28,7 @@ class UniversalExecutor(IDatabaseExecutor):
         return self._executor.supported_types
     
     @property
-    def default_type_converters(self) -> Tuple[IDBTypeConverter]:
+    def default_type_converters(self) -> Tuple[ITypeConverter]:
         return self._executor.default_type_converters
     
     

@@ -1,13 +1,13 @@
 __all__ = [
-    'BaseDBTypeConverter',
-    'BaseJsonDBTypeConverter',
-    'BoolDBTypeConverter',
-    'ListDBTypeConverter',
-    'TupleDBTypeConverter',
-    'DictDBTypeConverter',
-    'DatetimeDBTypeConverter',
-    'DateDBTypeConverter',
-    'TimedeltaSecondsDBTypeConverter',
+    'BaseTypeConverter',
+    'BaseJsonTypeConverter',
+    'BoolTypeConverter',
+    'ListTypeConverter',
+    'TupleTypeConverter',
+    'DictTypeConverter',
+    'DatetimeTypeConverter',
+    'DateTypeConverter',
+    'TimedeltaSecondsTypeConverter',
 ]
 
 from typing import override, Callable
@@ -16,10 +16,10 @@ from datetime import datetime as Datetime, date as Date, timedelta as Timedelta
 import json 
 
 from ..exceptions import TypeConverterError
-from ..interfaces import IDBTypeConverter, SOURCE_TYPE, DB_TYPE
+from ..interfaces import ITypeConverter, SOURCE_TYPE, DB_TYPE
 
 
-class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
+class BaseTypeConverter(ITypeConverter[SOURCE_TYPE, DB_TYPE]):
     def __init__(
             self,
             source_type: type[SOURCE_TYPE],
@@ -78,7 +78,7 @@ class BaseDBTypeConverter(IDBTypeConverter[SOURCE_TYPE, DB_TYPE]):
         return source_value
 
 
-class BaseJsonDBTypeConverter(BaseDBTypeConverter[SOURCE_TYPE, str]):
+class BaseJsonTypeConverter(BaseTypeConverter[SOURCE_TYPE, str]):
     def __init__(self, source_type:type[SOURCE_TYPE], **json_kwargs:dict) -> None:
         to_database_func = lambda value: json.dumps(value, **json_kwargs)
         from_database_func = lambda value: source_type(json.loads(value))
@@ -91,23 +91,23 @@ class BaseJsonDBTypeConverter(BaseDBTypeConverter[SOURCE_TYPE, str]):
 
 # Default converters
 
-class BoolDBTypeConverter(BaseDBTypeConverter[bool, int]):
+class BoolTypeConverter(BaseTypeConverter[bool, int]):
     def __init__(self) -> None:
         super().__init__(source_type=bool, db_type=int)
 
-class ListDBTypeConverter(BaseJsonDBTypeConverter[list]): 
+class ListTypeConverter(BaseJsonTypeConverter[list]): 
     def __init__(self, **json_kwargs: dict) -> None:
         super().__init__(source_type=list, **json_kwargs)
 
-class TupleDBTypeConverter(BaseJsonDBTypeConverter[tuple]):
+class TupleTypeConverter(BaseJsonTypeConverter[tuple]):
     def __init__(self, **json_kwargs: dict) -> None:
         super().__init__(source_type=tuple, **json_kwargs)
 
-class DictDBTypeConverter(BaseJsonDBTypeConverter[dict]):
+class DictTypeConverter(BaseJsonTypeConverter[dict]):
     def __init__(self, **json_kwargs: dict) -> None:
         super().__init__(source_type=dict, **json_kwargs)
 
-class DatetimeDBTypeConverter(BaseDBTypeConverter[Datetime, DB_TYPE]):
+class DatetimeTypeConverter(BaseTypeConverter[Datetime, DB_TYPE]):
     def __init__(self, db_type:type[DB_TYPE]) -> None:
         to_database_func = lambda value: db_type(value.timestamp())
         from_database_func = lambda value: Datetime.fromtimestamp(value)
@@ -118,7 +118,7 @@ class DatetimeDBTypeConverter(BaseDBTypeConverter[Datetime, DB_TYPE]):
             from_database_func = from_database_func
         )
 
-class DateDBTypeConverter(BaseDBTypeConverter[Date, int]):
+class DateTypeConverter(BaseTypeConverter[Date, int]):
     def __init__(self) -> None:
         to_database_func = lambda value: value.toordinal()
         from_database_func = lambda value: Date.fromordinal(value)
@@ -129,7 +129,7 @@ class DateDBTypeConverter(BaseDBTypeConverter[Date, int]):
             from_database_func = from_database_func
         )
 
-class TimedeltaSecondsDBTypeConverter(BaseDBTypeConverter[Timedelta, int]):
+class TimedeltaSecondsTypeConverter(BaseTypeConverter[Timedelta, int]):
     # Возможно переписать на total_seconds
     def __init__(self) -> None:
         to_database_func = lambda value: value.seconds
