@@ -8,6 +8,20 @@ from ..interfaces import IDBRequest, IField, MODEL
 
 
 class UniversalDBRequest(IDBRequest[Any]):
+    '''
+    `IDBRequest` implementation with custom `IDBRequest` objects factory.
+    
+    Usage:
+    ```
+    request_A = BaseDBRequest[A](...)
+    request_B = BaseDBRequest[B](...)
+
+    universal_request = UniversalDBRequest((request_A, request_B, ))
+
+    list_A = universal_request.load_all(A())
+    list_B = universal_request.load_all(B())
+    ```
+    '''
     def __init__(self, requests: tuple[IDBRequest]) -> None:
         self._requests = requests
 

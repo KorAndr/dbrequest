@@ -10,6 +10,16 @@ from .serizlizer import Serializer
 
 
 class BaseDBRequest(IDBRequest[MODEL]):
+    '''
+    High-level class that represents most important table operations in a database.
+    - save
+    - load
+    - update
+    - delete
+    - load_all 
+    
+    Generic[MODEL]
+    '''
     def __init__(
             self,
             model_type: type[MODEL],
@@ -21,7 +31,20 @@ class BaseDBRequest(IDBRequest[MODEL]):
             type_converters: tuple[ITypeConverter, ...] = (),
             replace_type_converters: bool = False,
         ) -> None:
-        
+        '''
+        Class constructor.
+
+        Args:
+            `model_type`: Model class.
+            `table_name`: Name of the table in database.
+            `fields`: `IField` objects in the same order that the columns in table.
+            `key_fields`: Unique `IFields` objects, that can be used as object UID.
+            `executor`: Set specific `IDatabaseExecutor` only for that DBRequest instance.
+            `type_converters`: Tuple of `ITypeConverter` objects used for convert unsupported types. 
+                Passed converters override defaults (it check before default converters).
+            `replace_type_converters`: Set `True` for drop default `ITypeConverters` object.
+        '''
+
         self._model_type = model_type
         self._table_name = table_name
         self._executor = executor

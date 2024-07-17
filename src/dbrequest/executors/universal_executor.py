@@ -7,6 +7,7 @@ from .sqlite_executor import SQLiteExecutor
 
 
 class UniversalExecutor(IDatabaseExecutor):
+    '''`IDatabaseExecutor` implementation with `IDatabaseExecutor` factory depends on global library config.'''
     def __init__(self, database_filename: str | None = None) -> None:
         self._EXECUTORS: dict[config.Executor, IDatabaseExecutor] = {
             'sqlite': SQLiteExecutor(database_filename),

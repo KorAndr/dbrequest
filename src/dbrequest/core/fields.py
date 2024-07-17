@@ -7,6 +7,7 @@ from ..interfaces import IField, MODEL, FIELD_TYPE
 
 
 class BaseField(IField[MODEL, FIELD_TYPE]):
+    '''Basic implementation of the interface `IField`. Ready to use with setup via class constructor.'''
     def __init__(
             self,
             name: str,
@@ -56,6 +57,28 @@ class BaseField(IField[MODEL, FIELD_TYPE]):
 
 
 class AutoField(BaseField[MODEL, FIELD_TYPE]):
+    '''
+    `BaseField` with automatic creation of getter and setter functions.
+
+    Use it if the column name and the model class attribute (field or property) completely identical.
+
+    Example:
+    ```
+    class Model:
+        def __init__(self) -> None:
+            self.public_field = 123
+            self._private_field = 456
+
+        @property
+        def private_prop(self) -> int: ...
+
+        @prop.setter
+        def private_prop(self, value:int) -> None: ...
+
+    public_field = AutoField('public_prop', int)
+    private_prop = AutoField('private_prop', int)
+    ```
+    '''
     def __init__(self, name: str, field_type: type[FIELD_TYPE], *, allowed_none: bool = False) -> None:
         getter = lambda obj: getattr(obj, name)
         setter = lambda obj, value: setattr(obj, name, value)

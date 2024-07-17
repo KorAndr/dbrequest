@@ -8,9 +8,13 @@ from ..interfaces import ITypeConverter, IField, MODEL
 
 class Serializer(Generic[MODEL]):
     '''
-    Retrieve values from `IField` objects and prepare for writing to the database.
-    Prepare values from the database for saving to `IField` objects.
-    Convert unsupported values using `ITypeConverter` objects.
+    Internal library class
+
+    - Retrieve values from `IField` objects and prepare for writing to the database.
+    - Prepare values from the database for saving to `IField` objects.
+    - Convert unsupported values using `ITypeConverter` objects.
+
+    Generic[MODEL]
     '''
     def __init__(
             self,
@@ -21,10 +25,10 @@ class Serializer(Generic[MODEL]):
         '''
         Class constructor.
 
-        Positional arguments:
-        :param fields: `IField` objects in the order in which parameters are declared in the database
-        :param supported_types: types supported by a specific database
-        :param type_converters: `ITypeConverter` objects for converting unsupported types
+        Args:
+        `fields`: `IField` objects in the order in which parameters are declared in the database
+        `supported_types`: types supported by a specific database
+        `type_converters`: `ITypeConverter` objects for converting unsupported types
         '''
         self._fields = fields
         self._supported_types = supported_types

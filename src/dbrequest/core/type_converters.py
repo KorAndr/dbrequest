@@ -20,6 +20,13 @@ from ..interfaces import ITypeConverter, SOURCE_TYPE, DB_TYPE
 
 
 class BaseTypeConverter(ITypeConverter[SOURCE_TYPE, DB_TYPE]):
+    '''
+    Convert the selected type to a type supported by the database via convert functions in constructor.
+
+    If convert functions are not setted, they are created automatically with simple type transform (like `int('123')`)
+    
+    Generic[SOURCE_TYPE, DB_TYPE]
+    '''
     def __init__(
             self,
             source_type: type[SOURCE_TYPE],

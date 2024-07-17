@@ -7,6 +7,7 @@ EMPTY_STRING_ERROR = '`{param}` parameter can not be empty string.'
 All: TypeAlias = Literal['*', 'all']
 
 class TableProp:
+    '''Component for database table name class property'''
     def __init__(self, table:str) -> None:
         if table == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='table'))
         self._table = table
@@ -16,6 +17,7 @@ class TableProp:
         return self._table
 
 class ColumnsProp:
+    '''Component for table column names class property'''
     def __init__(self, columns:tuple[str, ...] | All, *, allow_all:bool) -> None:
         self.__allow_all = allow_all
         self._columns = columns
@@ -38,6 +40,7 @@ class ColumnsProp:
         return ', '.join(self._columns)
 
 class ValuesProp:
+    '''Component for table column values class property'''
     def __init__(self, values: tuple[Any, ...], *, supported_types: tuple[type] | None = None) -> None:
         self._values = values
         
@@ -55,6 +58,7 @@ class ValuesProp:
         return ', '.join(['?'] * len(self._values))
 
 class WhereProp:
+    '''Component for SQL `WHERE` condition class property'''
     def __init__(self, where: str | None) -> None:
         if where == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='where'))
         self._where = where
@@ -71,6 +75,7 @@ class WhereProp:
         return where_str
 
 class OrderByProp:
+    '''Component for SQL `ORDER BY` condition class property'''
     def __init__(self, order_by: str | None) -> None:
         if order_by == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='order_by'))
         self._order_by = order_by
@@ -87,6 +92,7 @@ class OrderByProp:
         return order_str
 
 class LimitProp:
+    '''Component for SQL `LIMIT` confition class property'''
     def __init__(self, limit:int | str | None) -> None:
         if isinstance(limit, int):
             if limit <= 0:
