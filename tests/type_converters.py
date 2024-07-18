@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'src'))
 
-from datetime import datetime as Datetime, date as Date, time as Time, timedelta as Timedelta
+from datetime import datetime as Datetime, date as Date, timedelta as Timedelta
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 

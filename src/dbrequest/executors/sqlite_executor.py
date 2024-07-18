@@ -32,6 +32,10 @@ class SQLiteExecutor(IDatabaseExecutor):
             TimedeltaTypeConverter[int](db_type=int),
         )
     
+    @property
+    def internal_row_id_name(self) -> str:
+        return 'rowid'
+    
     def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]:
         if not isinstance(sql_request, ISQLRequest):
             raise TypeError(type(sql_request))

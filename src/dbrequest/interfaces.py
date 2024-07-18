@@ -49,9 +49,6 @@ class IDatabaseExecutor(ABC):
     @abstractmethod
     def __init__(self, database_filename: str | None = None) -> None: pass
 
-    @abstractmethod
-    def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]: pass
-
     @property
     @abstractmethod
     def supported_types(self) -> tuple[type, ...]:
@@ -61,6 +58,14 @@ class IDatabaseExecutor(ABC):
     @abstractmethod
     def default_type_converters(self) -> tuple[ITypeConverter, ...]:
         '''`ITypeConverter` objects for some basic python types not supported by default.'''
+
+    @property
+    @abstractmethod
+    def internal_row_id_name(self) -> str | None:
+        '''Name of hiden column contents unique internal row id or None if not applicable for specific database.'''
+
+    @abstractmethod
+    def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]: pass
 
 
 MODEL = TypeVar('MODEL')

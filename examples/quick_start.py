@@ -5,7 +5,7 @@ import dbrequest
 from dbrequest import BaseDBRequest, AutoField
 
 
-dbrequest.init(init_script='example/quick_start.sql', database_filename='example/quick_start.db')
+dbrequest.init(init_script='examples/quick_start.sql', database_filename='examples/quick_start.db')
 
 class User:
     def __init__(self, id: int | None = None, username: str | None = None) -> None:

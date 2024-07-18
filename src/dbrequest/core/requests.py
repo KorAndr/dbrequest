@@ -132,7 +132,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
                 raise SchemaError(f'Unable to sort by field name "{sort_field_name}": field not exist.')
         else:
             if limit is not None:
-                order_by = self._key_fields[0].name
+                order_by = self._executor.internal_row_id_name if self._executor.internal_row_id_name else self._key_fields[0].name
 
         if order_by is not None:
             if reverse:

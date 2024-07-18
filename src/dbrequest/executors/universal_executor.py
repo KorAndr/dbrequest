@@ -22,9 +22,6 @@ class UniversalExecutor(IDatabaseExecutor):
                 raise FactoryError(f'Unknown executor "{config.EXECUTOR}"')
             self._executor = executor
 
-    def start(self, sql_request: ISQLRequest) -> list[tuple[Any]]:
-        return self._executor.start(sql_request)
-    
     @property
     def supported_types(self) -> tuple[type, ...]:
         return self._executor.supported_types
@@ -32,5 +29,12 @@ class UniversalExecutor(IDatabaseExecutor):
     @property
     def default_type_converters(self) -> tuple[ITypeConverter, ...]:
         return self._executor.default_type_converters
+    
+    @property
+    def internal_row_id_name(self) -> str | None:
+        return self._executor.internal_row_id_name
+
+    def start(self, sql_request: ISQLRequest) -> list[tuple[Any]]:
+        return self._executor.start(sql_request)
     
     
