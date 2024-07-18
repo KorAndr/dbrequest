@@ -7,7 +7,7 @@ from ..interfaces import ITypeConverter, ISQLRequest, IDatabaseExecutor
 from ..sql import SQLFile
 from ..core.type_converters import (
     BoolTypeConverter, ListTypeConverter, TupleTypeConverter, DictTypeConverter,
-    DatetimeTypeConverter, DateTypeConverter,
+    DatetimeTypeConverter, DateTypeConverter, TimedeltaTypeConverter,
 )
 
 
@@ -29,6 +29,7 @@ class SQLiteExecutor(IDatabaseExecutor):
             DictTypeConverter(),
             DatetimeTypeConverter[int](db_type=int),
             DateTypeConverter(),
+            TimedeltaTypeConverter[int](db_type=int),
         )
     
     def start(self, sql_request:ISQLRequest) -> list[tuple[Any]]:

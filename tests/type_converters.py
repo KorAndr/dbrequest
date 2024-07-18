@@ -15,7 +15,7 @@ from dbrequest.core.type_converters import (
     DictTypeConverter,
     DatetimeTypeConverter,
     DateTypeConverter,
-    TimedeltaSecondsTypeConverter,
+    TimedeltaTypeConverter,
 )
 
 
@@ -166,6 +166,21 @@ class Test_DateTypeConverter(TestCase):
 
     def test__type__ok(self) -> None:
         self.assertEqual(self.converter.source_type, Date)
+
+    def test__to_database__simple__ok(self) -> None:
+        self.assertEqual(self.converter.to_database(self.value), self.converted_value)
+
+    def test__from_database__simple__ok(self) -> None:
+        self.assertEqual(self.converter.from_database(self.converted_value), self.value)
+
+class Test_TimedeltaTypeConverter(TestCase):
+    def setUp(self) -> None:
+        self.converter = TimedeltaTypeConverter[float](db_type=float)
+        self.value = Timedelta(days=1, seconds=123.4)
+        self.converted_value = 86523.4
+
+    def test__type__ok(self) -> None:
+        self.assertEqual(self.converter.source_type, Timedelta)
 
     def test__to_database__simple__ok(self) -> None:
         self.assertEqual(self.converter.to_database(self.value), self.converted_value)

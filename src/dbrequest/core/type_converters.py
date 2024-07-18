@@ -7,7 +7,7 @@ __all__ = [
     'DictTypeConverter',
     'DatetimeTypeConverter',
     'DateTypeConverter',
-    'TimedeltaSecondsTypeConverter',
+    'TimedeltaTypeConverter',
 ]
 
 from typing import override, Callable
@@ -136,14 +136,13 @@ class DateTypeConverter(BaseTypeConverter[Date, int]):
             from_database_func = from_database_func
         )
 
-class TimedeltaSecondsTypeConverter(BaseTypeConverter[Timedelta, int]):
-    # Возможно переписать на total_seconds
-    def __init__(self) -> None:
-        to_database_func = lambda value: value.seconds
+class TimedeltaTypeConverter(BaseTypeConverter[Timedelta, DB_TYPE]):
+    def __init__(self, db_type:type[DB_TYPE]) -> None:
+        to_database_func = lambda value: db_type.__call__(value.total_seconds())
         from_database_func = lambda value: Timedelta(seconds=value)
         super().__init__(
             source_type = Timedelta,
-            db_type = int,
+            db_type = db_type,
             to_database_func = to_database_func,
             from_database_func = from_database_func
         )

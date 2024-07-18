@@ -52,7 +52,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         self._key_fields = key_fields
 
         if not replace_type_converters:
-            type_converters = tuple(list(type_converters) + list(executor.default_type_converters))
+            type_converters = type_converters + executor.default_type_converters
 
         self._serializer = Serializer[MODEL](
             fields = fields,
