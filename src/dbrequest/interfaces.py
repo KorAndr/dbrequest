@@ -154,7 +154,7 @@ class IDBRequest(ABC, Generic[MODEL]):
         *,
         limit: int | None = None,
         reverse: bool = False,
-        sort_by: IField | str | MethodType | None = None
+        sort_by: IField | str | None = None
     ) -> list[MODEL]:
         '''
         Load all objects that meet the conditions.
@@ -163,8 +163,7 @@ class IDBRequest(ABC, Generic[MODEL]):
             `object_sample`: Some instance of the model class. It will be used to clone objects.   
             `limit`: Maximum number of objects to load.
             `reverse`: Reverse result list.
-            `sort_by`: Parameter by which sorting will be performed. It can be just name,
-                IField object or model class method if method name and column name is the same.
+            `sort_by`: Parameter by which sorting will be performed. It can be just name or IField object.
         Returns:
             List of new model objects.
         '''

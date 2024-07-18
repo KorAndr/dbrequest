@@ -42,7 +42,7 @@ class UniversalDBRequest(IDBRequest[Any]):
     def delete(self, object:MODEL) -> None:
         self._get_request(object).delete(object)
     
-    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | None=None) -> list[MODEL]:
         return self._get_request(object_sample).load_all(object_sample, limit=limit, reverse=reverse, sort_by=sort_by)
     
     def _get_request(self, object:MODEL) -> IDBRequest[MODEL]:

@@ -109,7 +109,7 @@ class BaseDBRequest(IDBRequest[MODEL]):
         request = SQLDelete(self._table_name, where=condition, where_values=condition_values)
         self._executor.start(request)
 
-    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | None=None) -> list[MODEL]:
         self._check_type(object_sample)
         objects_list = []
 
@@ -121,8 +121,6 @@ class BaseDBRequest(IDBRequest[MODEL]):
                 sort_field_name = sort_by.name
             elif isinstance(sort_by, str):
                 sort_field_name = sort_by
-            elif isinstance(sort_by, MethodType):
-                sort_field_name = sort_by.__name__
             else:
                 raise TypeError(f'The `sort_by` parameter might be IField, str` or MetodType, not {type(sort_by)}.')
 
