@@ -46,23 +46,23 @@ class Test_Integration(TestCase):
         delete_database()
         init(database_filename=DATABASE_FILE, init_script='tests/integration.sql')
 
-        self._key_fields: list[AutoField] = [
+        self._key_fields: tuple[AutoField] = (
             AutoField[User, int]('id', int, allowed_none=True),
             AutoField[User, str]('username', str),
-        ]
-        self._fields: list[AutoField] = [
+        )
+        self._fields: tuple[AutoField] = (
             AutoField[User, bool]('is_sign_in', bool),
             AutoField[User, Datetime]('datetime', Datetime, allowed_none=True),
             AutoField[User, float]('ratio', float),
             AutoField[User, bytes]('hash', bytes, allowed_none=True),
             AutoField[User, CustomType]('custom', CustomType, allowed_none=True)
-        ]
+        )
 
         self._database = BaseDBRequest[User](
             model_type = User,
             table_name = 'users',
-            fields = tuple(self._key_fields + self._fields),
-            key_fields = tuple(self._key_fields),
+            fields = self._key_fields + self._fields,
+            key_fields = self._key_fields,
             type_converters = (BaseTypeConverter[CustomType, str](CustomType, str), )
         )
 
