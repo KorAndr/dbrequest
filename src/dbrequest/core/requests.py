@@ -1,5 +1,6 @@
 __all__ = ['BaseDBRequest']
 
+from typing import Any
 from types import MethodType
 
 from ..exceptions import SchemaError
@@ -80,9 +81,9 @@ class BaseDBRequest(IDBRequest[MODEL]):
     def load(self, object:MODEL) -> bool:
         self._check_type(object)
         is_found = False
-        condition = self._get_key_field_condition(object)
+        condition, condition_values = self._get_key_field_condition(object)
         
-        request = SQLSelect(self._table_name, columns='*', where=condition, limit=1)
+        request = SQLSelect(self._table_name, columns='*', where=condition, where_values=condition_values, limit=1)
         response = self._executor.start(request)
 
         if len(response) > 0:
@@ -94,18 +95,18 @@ class BaseDBRequest(IDBRequest[MODEL]):
         
     def update(self, object:MODEL) -> None:
         self._check_type(object)
-        condition = self._get_key_field_condition(object)
+        condition, condition_values = self._get_key_field_condition(object)
         
         params, values = self._serializer.get_params_and_values(object)
 
-        request = SQLUpdate(self._table_name, columns=params, values=values, where=condition)
+        request = SQLUpdate(self._table_name, columns=params, values=values, where=condition, where_values=condition_values)
         self._executor.start(request)
         
     def delete(self, object:MODEL) -> None:
         self._check_type(object)
-        condition = self._get_key_field_condition(object)
+        condition, condition_values = self._get_key_field_condition(object)
         
-        request = SQLDelete(self._table_name, where=condition)
+        request = SQLDelete(self._table_name, where=condition, where_values=condition_values)
         self._executor.start(request)
 
     def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | MethodType | None=None) -> list[MODEL]:
@@ -151,22 +152,20 @@ class BaseDBRequest(IDBRequest[MODEL]):
         if not isinstance(object, self._model_type):
             raise TypeError(f'Got unexpected model object type {type(object)}. Expected: {self._model_type}.')
 
-    def _get_key_field_condition(self, object:MODEL) -> str:
+    def _get_key_field_condition(self, object:MODEL) -> tuple[str, tuple[Any, ...]]:
         condition = ''
+        values: tuple[Any, ...] = ()
         for field in self._key_fields:
             try:
                 field.get_value_from_object(object)
             except ValueError: pass
             else:
                 if field.value is not None:
-                    condition = f'{field.name} = \'{self._escape_sql(field.value)}\''
+                    condition = f'{field.name} = ' + '{}'
+                    values = (field.value, )
                     break
         else:
             raise SchemaError(f'Unable to compose SQL condition: all key fields are empty (None type).')
 
-        return condition
-    
-    def _escape_sql(self, text:str) -> str:
-        # Добавить экранирование
-        return text
+        return condition, values
         

@@ -59,9 +59,28 @@ class ValuesProp:
 
 class WhereProp:
     '''Component for SQL `WHERE` condition class property'''
-    def __init__(self, where: str | None) -> None:
+    def __init__(self, where: str | None, where_values: tuple[Any, ...] | None) -> None:
+        '''
+        - In simple case use only `where` parameter without `where_values`.
+        For example: `where = r"username = 'admin'"`.
+        
+        - In case of processing user input use "{}" template and separate values from request string.
+        
+        Example:
+        ```
+        where = "username = {} AND rating > {}"
+        where_values = (username, rating)
+        ```
+
+        Warning! Do not use f-strings for processing user input. It's not safe for SQL-injection.
+        '''
+
         if where == '': raise SQLArgsError(EMPTY_STRING_ERROR.format(param='where'))
         self._where = where
+        self._where_values = where_values
+
+        if where and where_values:
+            self._where = where.format(*['?' for index in range(len(where_values))])
 
     @property
     def where(self) -> str | None:
@@ -73,6 +92,10 @@ class WhereProp:
         if self._where is not None:
             where_str = f' WHERE {self._where}'
         return where_str
+    
+    @property
+    def where_values(self) -> tuple[Any, ...] | None:
+        return self._where_values
 
 class OrderByProp:
     '''Component for SQL `ORDER BY` condition class property'''
