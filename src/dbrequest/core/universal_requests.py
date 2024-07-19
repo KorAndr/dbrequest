@@ -1,37 +1,56 @@
-from typing import Dict
+__all__ = ['UniversalDBRequest']
 
-from .interfaces import ISavable
-from .idb_request import IDBRequest
-from .fields import AbstractField
+from typing import Any, no_type_check
+from types import MethodType
+
+from ..exceptions import FactoryError
+from ..interfaces import IDBRequest, IField, MODEL
 
 
-class AbstractUniversalDBRequest(IDBRequest):
-    def __init__(self) -> None:
-        self._REQUESTS: Dict[ISavable, IDBRequest] = {}
-
-    def save(self, object:ISavable) -> None:
-        self._getStorageRequest(object).save(object)
+class UniversalDBRequest(IDBRequest[Any]):
+    '''
+    `IDBRequest` implementation with custom `IDBRequest` objects factory.
     
-    def load(self, object:ISavable) -> bool:
-        return self._getStorageRequest(object).load(object)
-    
-    def update(self, object:ISavable) -> None:
-        self._getStorageRequest(object).update(object)
+    Usage:
+    ```
+    request_A = BaseDBRequest[A](...)
+    request_B = BaseDBRequest[B](...)
 
-    def delete(self, object:ISavable) -> None:
-        self._getStorageRequest(object).delete(object)
+    universal_request = UniversalDBRequest((request_A, request_B, ))
+
+    list_A = universal_request.load_all(A())
+    list_B = universal_request.load_all(B())
+    ```
+    '''
+    def __init__(self, requests: tuple[IDBRequest]) -> None:
+        self._requests = requests
+
+    @property
+    @no_type_check
+    def model_type(self) -> tuple[type]:
+        return tuple([request.model_type for request in self._requests])
+
+    def save(self, object:MODEL) -> None:
+        self._get_request(object).save(object)
     
-    def loadAll(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sortField:AbstractField=None) -> list:
-        return self._getStorageRequest(object_sample).loadAll(object_sample, limit, reverse, sortField)
+    def load(self, object:MODEL) -> bool:
+        return self._get_request(object).load(object)
     
-    def _getStorageRequest(self, object:ISavable) -> IDBRequest:
-        request: IDBRequest = None
-        for object_type in self._REQUESTS.keys():
-            if isinstance(object, object_type):
-                request = self._REQUESTS[object_type]
+    def update(self, object:MODEL) -> None:
+        self._get_request(object).update(object)
+
+    def delete(self, object:MODEL) -> None:
+        self._get_request(object).delete(object)
+    
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | None=None) -> list[MODEL]:
+        return self._get_request(object_sample).load_all(object_sample, limit=limit, reverse=reverse, sort_by=sort_by)
+    
+    def _get_request(self, object:MODEL) -> IDBRequest[MODEL]:
+        for request in self._requests:
+            if isinstance(object, request.model_type):
                 break
         else:
-            raise TypeError(type(object))
+            raise FactoryError(f'Can not find request for object type {type(object)}')
 
         return request
     

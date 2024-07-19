@@ -1,164 +1,159 @@
-from typing import Tuple, Union, Any
+__all__ = ['SQLInsert', 'SQLSelect', 'SQLUpdate', 'SQLDelete', 'SQLCustom', 'SQLFile']
 
-from .interfaces import ISQLRequest
-from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp
+from typing import Any, override
+
+from ..exceptions import SQLArgsError
+from ..interfaces import ISQLRequest
+from .properties import TableProp, ColumnsProp, ValuesProp, WhereProp, OrderByProp, LimitProp, All
 
 
 class SQLInsert(ISQLRequest, TableProp, ColumnsProp, ValuesProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=False)
-        ValuesProp.__init__(self)
-        self._is_default = False
-        self._is_replace = False
-
-    def setDefaultValues(self) -> None:
-        self._is_default = True
-
-    def setReplaceMode(self) -> None:
-        self._is_replace = True
-
-    def setArgs(
+    def __init__(
             self,
-            table: str = None,
-            columns: Tuple[str] = None,
-            values: Tuple[Any] = None,
-            is_default: bool = None,
-            is_replace: bool = None
+            table: str,
+            *,
+            columns: tuple[str, ...],
+            values: tuple[Any, ...],
+            is_default: bool = False,
+            is_replace: bool = False,
         ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=False)
+        ValuesProp.__init__(self, values)
+        self._is_default = is_default
+        self._is_replace = is_replace
 
-        if table is not None: self.table = table
-        if self._table is None: raise ValueError(table)
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise ValueError(columns)
-        if values is not None: self.values = values
-        if self._values is None: raise ValueError(values)
-        if isinstance(is_default, bool): self._is_default = is_default
-        if isinstance(is_replace, bool): self._is_replace = is_replace
-
-    def getRequest(self) -> Tuple[str, Tuple[Any]]:
-        request: Tuple[str, str] = ()
+    @override
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]:
+        request: tuple[str, tuple[Any]] | tuple[str]
 
         command = 'INSERT'
         if self._is_replace:
             command = 'REPLACE'
         
-        request_str = f'{command} INTO {self._table} ({self._columnsStr}) '
+        request_str = f'{command} INTO {self._table} ({self._columns_str}) '
 
         if self._is_default:
             request_str += 'DEFAULT VALUES;'
             request = (request_str, )
         else:
-            request_str += f'VALUES ({self._valuesTemplate});'
+            request_str += f'VALUES ({self._values_template});'
 
-            request = (request_str, self._values)
+            request = (request_str, self.values)
 
         return request
     
 class SQLSelect(ISQLRequest, TableProp, ColumnsProp, WhereProp, OrderByProp, LimitProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=True)
-        WhereProp.__init__(self)
-        OrderByProp.__init__(self)
-        LimitProp.__init__(self)
-        self._is_distinct: bool = False 
-
-    def setDistinct(self) -> None:
-        self._is_distinct = True
-
-    def setArgs(
+    def __init__(
             self,
-            table: str = None,
-            columns: Union[Tuple[str], str] = None,
-            where: str = None,
-            is_distinct: bool = None,
-            order_by: str = None,
-            limit: Union[int, str] = None
+            table: str,
+            *,
+            columns: tuple[str, ...] | All,
+            where: str | None = None,
+            where_values: tuple[Any, ...] | None = None,
+            is_distinct: bool = False,
+            order_by: str | None = None,
+            limit: int | str | None = None,
         ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=True)
+        WhereProp.__init__(self, where, where_values)
+        OrderByProp.__init__(self, order_by)
+        LimitProp.__init__(self, limit)
+        self._is_distinct = is_distinct 
+        
+    @override
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]:
+        request: tuple[str, tuple[Any]] | tuple[str]
 
-        if table is not None: self.table = table
-        if self._table is None: raise ValueError(table)
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise ValueError(columns)
-        if where is not None: self.where = where
-        if isinstance(is_distinct, bool): self._is_distinct = is_distinct
-        if order_by is not None: self.orderBy = order_by
-        if limit is not None: self.limit = limit
-        
-        
-    def getRequest(self) -> Tuple[str]:
         distinct = ''
         if self._is_distinct:
             distinct = ' DISTINCT'
 
-        request_str = f'SELECT{distinct} {self._columnsStr} FROM {self._table}{self._whereStr}{self._orderStr}{self._limitStr};'
+        request_str = f'SELECT{distinct} {self._columns_str} FROM {self._table}{self._where_str}{self._order_str}{self._limit_str};'
 
-        return (request_str, )
+        if self.where_values is None:
+            request = (request_str, )
+        else:
+            request = (request_str, self.where_values)
+
+        return request
 
 class SQLUpdate(ISQLRequest, TableProp, ColumnsProp, ValuesProp, WhereProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        ColumnsProp.__init__(self, allow_all=False)
-        ValuesProp.__init__(self)
-        WhereProp.__init__(self)
+    def __init__(
+            self,
+            table: str,
+            *,
+            columns: tuple[str, ...],
+            values: tuple[Any, ...],
+            where: str | None = None,
+            where_values: tuple[Any, ...] | None = None,
+        ) -> None:
+        TableProp.__init__(self, table)
+        ColumnsProp.__init__(self, columns, allow_all=False)
+        ValuesProp.__init__(self, values)
+        WhereProp.__init__(self, where, where_values)
 
-    def setArgs(self, table:str=None, columns:Tuple[str]=None, values:tuple=None, where:str=None) -> None:
-        if table is not None: self.table = table
-        if self._table is None: raise ValueError(table)
-        if columns is not None: self.columns = columns
-        if self._columns is None: raise ValueError(columns)
-        if values is not None: self.values = values
-        if self._values is None: raise ValueError(values)
-        if where is not None: self.where = where
-
-    def getRequest(self) -> Tuple[str, Tuple[Any]]:
-        request: Tuple[str, str] = ()
+    @override
+    def get_request(self) -> tuple[str, tuple[Any]]:
+        request: tuple[str, tuple[Any]]
 
         columns_and_values = ', '.join([f'{column} = ?' for column in self._columns])
-        request_str = f'UPDATE {self._table} SET {columns_and_values}{self._whereStr};'
+        request_str = f'UPDATE {self._table} SET {columns_and_values}{self._where_str};'
 
-        request = (request_str, self._values)
+        if self.where_values is None:
+            request = (request_str, self._values)
+        else:
+            request = (request_str, self._values + self.where_values)
 
         return request
 
 class SQLDelete(ISQLRequest, TableProp, WhereProp):
-    def __init__(self) -> None:
-        TableProp.__init__(self)
-        WhereProp.__init__(self)
+    def __init__(self, table:str, where:str | None = None, where_values: tuple[Any, ...] | None = None) -> None:
+        TableProp.__init__(self, table)
+        WhereProp.__init__(self, where, where_values)
 
-    def setArgs(self, table:str=None, where:str=None) -> None:
-        if table is not None: self.table = table
-        if self._table is None: raise ValueError(table)
-        if where is not None: self.where = where
+    @override
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]:
+        request: tuple[str, tuple[Any]] | tuple[str]
+        request_str = f'DELETE FROM {self._table}{self._where_str};'
 
-    def getRequest(self) -> Tuple[str]:
-        request_str = f'DELETE FROM {self._table}{self._whereStr};'
-
-        return (request_str, )
+        if self.where_values is None:
+            request = (request_str, )
+        else:
+            request = (request_str, self.where_values)
+        
+        return request
 
 class SQLCustom(ISQLRequest):
-    def __init__(self) -> None:
-        self._request_str:str = None
-
-    def setArgs(self, request:str) -> None:
-        if not isinstance(request, str):
-            raise TypeError(request)
+    def __init__(self, request:str, values:tuple[Any, ...] | None) -> None:
         if request == '':
-            raise ValueError(request)
-        self._request_str = request
+            raise SQLArgsError('`request_str` parameter can not be empty string.')
+        if values == (): 
+            raise SQLArgsError('`values` tuple can not be empty. Use `None` for skip `values`.')
 
-    def getRequest(self) -> Tuple[str]:
-        return (self._request_str, )
+        self._request = request
+        self._values = values
+
+    @override
+    def get_request(self) -> tuple[str, tuple[Any]] | tuple[str]:
+        request: tuple[str, tuple[Any]] | tuple[str]
+        if self._values:
+            request = (self._request, self._values)
+        else:
+            request = (self._request, )
+
+        return request
 
 class SQLFile(ISQLRequest):
-    def __init__(self) -> None:
-        self._request_str = None
+    def __init__(self, file_name:str) -> None:
+        with open(file_name, 'r') as file:
+            self._request_str = file.read()  
 
-    def setArgs(self, filename:str) -> None:
-        with open(filename, 'r') as file:
-            self._request_str = file.read()
-                
-    def getRequest(self) -> Tuple[str]:
+        if ';' not in self._request_str:
+            raise SQLArgsError(f'`{file_name}` file doesn\'t contains complete SQL request because ";" not in file.')      
+
+    @override                
+    def get_request(self) -> tuple[str]:
         return (self._request_str, )
 

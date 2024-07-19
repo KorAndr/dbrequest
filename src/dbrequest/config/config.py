@@ -1,49 +1,42 @@
-from enum import Enum
-from typing import Union
+__all__ = ['init']
 
-from ..executors.interfaces import IDatabaseExecutor
+from typing import Literal, TypeAlias
+
+from ..exceptions import ConfigError
+from ..interfaces import IDatabaseExecutor
 
 
-class Executors(Enum):
-    SQLITE = 'SQLite'
+Executor: TypeAlias = Literal['sqlite', ]
 
 DATABASE_FILENAME: str = 'database.db'
-EXECUTOR: Union[Executors, IDatabaseExecutor] = Executors.SQLITE
+EXECUTOR: Executor | IDatabaseExecutor = 'sqlite'
 LOGGER_NAME: str = 'database'
 
 def init(
+        *,
         database_filename: str = 'database.db',
-        executor: Union[str, Executors, IDatabaseExecutor] = Executors.SQLITE,
+        executor: Executor | IDatabaseExecutor = 'sqlite',
         logger_name: str = 'database',
-        init_script: str = None,
+        init_script: str | None = None,
     ) -> None:
 
     global DATABASE_FILENAME
     global EXECUTOR
     global LOGGER_NAME
 
-    if not isinstance(database_filename, str): raise TypeError(type(database_filename))
-    if not isinstance(executor, (str, Executors, IDatabaseExecutor)): raise TypeError(executor)
-    if not isinstance(logger_name, str): raise TypeError(type(logger_name))
-    if not isinstance(init_script, (str, type(None))): raise TypeError(type(init_script))
+    if database_filename == '': raise ConfigError(f'`database_filename` parameter can not be empty string.')
+    if logger_name == '': raise ConfigError(f'`logger_name` parameter can not be empty string.')
+    if init_script is not None and init_script == '': raise ConfigError(f'`init_script` parameter can not be empty string.')
 
-    if database_filename == '': raise ValueError(database_filename)
-    if logger_name == '': raise ValueError(logger_name)
-    if init_script is not None and init_script == '': raise ValueError(init_script)
-
-    if isinstance(executor, str):
-        executor = Executors(executor)
     EXECUTOR = executor
-    
     DATABASE_FILENAME = database_filename
     LOGGER_NAME = logger_name
 
     if init_script is not None:
-        from ..executors.universal_executor import UniversalExecutor
-        from ..sql_requests import SQLFile
+        from ..executors import UniversalExecutor
+        from ..sql import SQLFile
 
-        request = SQLFile()
-        request.setArgs(filename=init_script)
+        request = SQLFile(file_name=init_script)
 
         executor = UniversalExecutor()
         executor.start(request)

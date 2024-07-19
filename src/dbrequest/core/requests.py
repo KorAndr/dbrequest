@@ -1,120 +1,169 @@
-from typing import Tuple
+__all__ = ['BaseDBRequest']
 
-from ..executors.universal_executor import UniversalExecutor
-from ..executors.interfaces import IDatabaseExecutor
+from typing import Any
+from types import MethodType
+
+from ..exceptions import SchemaError
+from ..interfaces import IDatabaseExecutor, ITypeConverter, IDBRequest, IField, MODEL
+from ..executors import UniversalExecutor
 from ..sql.requests import SQLInsert, SQLSelect, SQLUpdate, SQLDelete
-from .saver_loader import DatabaseSaverLoader
-from .interfaces import ISavable, IUsernameKeySavable
-from .idb_request import IDBRequest
-from .fields import AbstractField
+from .serializer import Serializer 
 
 
-class AbstractDBRequest(IDBRequest):
-    def __init__(self) -> None:
-        self._TABLE_NAME: str = None
-        self._saverLoader = DatabaseSaverLoader()
-        self._executor: IDatabaseExecutor = UniversalExecutor()
+class BaseDBRequest(IDBRequest[MODEL]):
+    '''
+    High-level class that represents most important table operations in a database.
+    - save
+    - load
+    - update
+    - delete
+    - load_all 
+    
+    Generic[MODEL]
+    '''
+    def __init__(
+            self,
+            model_type: type[MODEL],
+            table_name: str,
+            fields: tuple[IField, ...],
+            key_fields: tuple[IField, ...],
+            *,
+            executor: IDatabaseExecutor = UniversalExecutor(),
+            type_converters: tuple[ITypeConverter, ...] = (),
+            replace_type_converters: bool = False,
+        ) -> None:
+        '''
+        Class constructor.
 
-    def save(self, object:ISavable) -> None:
-        if not isinstance(object, ISavable):
-            raise TypeError(type(object))
+        Args:
+            `model_type`: Model class.
+            `table_name`: Name of the table in database.
+            `fields`: `IField` objects in the same order that the columns in table.
+            `key_fields`: Unique `IFields` objects, that can be used as object UID.
+            `executor`: Set specific `IDatabaseExecutor` only for that DBRequest instance.
+            `type_converters`: Tuple of `ITypeConverter` objects used for convert unsupported types. 
+                Passed converters override defaults (it check before default converters).
+            `replace_type_converters`: Set `True` for drop default `ITypeConverters` object.
+        '''
+
+        self._model_type = model_type
+        self._table_name = table_name
+        self._executor = executor
+        self._key_fields = key_fields
+
+        if not replace_type_converters:
+            type_converters = type_converters + executor.default_type_converters
+
+        self._serializer = Serializer[MODEL](
+            fields = fields,
+            supported_types = executor.supported_types,
+            type_converters = type_converters,
+        )
+
+        if len(key_fields) == 0:
+            raise SchemaError('`key_fields` must contents at least one element.')
+        for key_field in key_fields:
+            if key_field.name not in [field.name for field in fields]:
+                raise SchemaError(f'Key field "{key_field.name}" not found in `fields` tuple.')
+
+    @property
+    def model_type(self) -> type[MODEL]:
+        return self._model_type
+
+    def save(self, object:MODEL) -> None:
+        self._check_type(object)
         
-        params, values = self._saverLoader.getParamsAndValues(object)
+        params, values = self._serializer.get_params_and_values(object)
 
-        request = SQLInsert()
-        request.setArgs(table=self._TABLE_NAME, columns=params, values=values)
+        request = SQLInsert(self._table_name, columns=params, values=values)
         self._executor.start(request)
         
-    def load(self, object:ISavable) -> bool:
-        if not isinstance(object, ISavable):
-            raise TypeError(type(object))
-        
+    def load(self, object:MODEL) -> bool:
+        self._check_type(object)
         is_found = False
-        condition = ''
-
-        if object.id is not None:
-            condition = f'id = {object.id}'
-        else:
-            if isinstance(object, IUsernameKeySavable) and object.username is not None:
-                condition = f'username = \'{object.username}\''
-            else:
-                raise ValueError(object.id)
+        condition, condition_values = self._get_key_field_condition(object)
         
-        request = SQLSelect()
-        request.setArgs(table=self._TABLE_NAME, columns='*', where=condition, limit=1)
+        request = SQLSelect(self._table_name, columns='*', where=condition, where_values=condition_values, limit=1)
         response = self._executor.start(request)
 
         if len(response) > 0:
             is_found = True
-            values: list = response[0]
-            self._saverLoader.setValuesToObject(object, values)
+            values = response[0]
+            self._serializer.set_values_to_object(object, values)
         
         return is_found
         
-    def update(self, object:ISavable) -> None:
-        if not isinstance(object, ISavable):
-            raise TypeError(type(object))
-        if object.id is None:
-            raise ValueError(object.id)
+    def update(self, object:MODEL) -> None:
+        self._check_type(object)
+        condition, condition_values = self._get_key_field_condition(object)
         
-        params, values = self._saverLoader.getParamsAndValues(object)
+        params, values = self._serializer.get_params_and_values(object)
 
-        request = SQLUpdate()
-        request.setArgs(table=self._TABLE_NAME, columns=params, values=values, where=f'id = {object.id}')
-
+        request = SQLUpdate(self._table_name, columns=params, values=values, where=condition, where_values=condition_values)
         self._executor.start(request)
         
-    def delete(self, object:ISavable) -> None:
-        if not isinstance(object, ISavable):
-            raise TypeError(type(object))
-        if object.id is None:
-            raise ValueError(object.id)
+    def delete(self, object:MODEL) -> None:
+        self._check_type(object)
+        condition, condition_values = self._get_key_field_condition(object)
         
-        request = SQLDelete()
-        request.setArgs(table=self._TABLE_NAME, where=f'id = {object.id}')
-
+        request = SQLDelete(self._table_name, where=condition, where_values=condition_values)
         self._executor.start(request)
 
-    def loadAll(self, object_sample:ISavable, limit:int=None, reverse:bool=True, sortField:AbstractField=None) -> list:
-        if not isinstance(object_sample, ISavable):
-            raise TypeError(type(object_sample))
-
+    def load_all(self, object_sample:MODEL, *, limit:int | None=None, reverse:bool=False, sort_by:IField | str | None=None) -> list[MODEL]:
+        self._check_type(object_sample)
         objects_list = []
-        request = SQLSelect()
 
         order_by = None
 
-        if sortField is not None:
-            for field in self._FIELDS:
-                if type(field) == sortField:
-                    order_by = field.NAME
-                    break
+        if sort_by is not None:
+            sort_field_name = None
+            if isinstance(sort_by, IField):
+                sort_field_name = sort_by.name
+            elif isinstance(sort_by, str):
+                sort_field_name = sort_by
             else:
-                raise ValueError(sortField)
+                raise TypeError(f'The `sort_by` parameter might be IField, str` or MetodType, not {type(sort_by)}.')
+
+            if sort_field_name in [field.name for field in self._serializer.fields]:
+                order_by = sort_field_name
+            else:
+                raise SchemaError(f'Unable to sort by field name "{sort_field_name}": field not exist.')
         else:
             if limit is not None:
-                order_by = 'id'
+                order_by = self._executor.internal_row_id_name if self._executor.internal_row_id_name else self._key_fields[0].name
 
         if order_by is not None:
             if reverse:
                 order_by += ' DESC' 
-
-        request.setArgs(table=self._TABLE_NAME, columns='*', order_by=order_by, limit=limit)
+        
+        request = SQLSelect(self._table_name, columns='*', order_by=order_by, limit=limit)
         table = self._executor.start(request)
         
         for row in table:
             object = type(object_sample)()
-            self._saverLoader.setValuesToObject(object, row)
+            self._serializer.set_values_to_object(object, row)
             objects_list.append(object)
 
         return objects_list
 
-    @property
-    def _FIELDS(self) -> Tuple[AbstractField]:
-        return self._saverLoader.FIELDS
-    
-    @_FIELDS.setter
-    def _FIELDS(self, value:Tuple[AbstractField]) -> None:
-        self._saverLoader.FIELDS = value
+    def _check_type(self, object:MODEL) -> None:
+        if not isinstance(object, self._model_type):
+            raise TypeError(f'Got unexpected model object type {type(object)}. Expected: {self._model_type}.')
 
+    def _get_key_field_condition(self, object:MODEL) -> tuple[str, tuple[Any, ...]]:
+        condition = ''
+        values: tuple[Any, ...] = ()
+        for field in self._key_fields:
+            try:
+                field.get_value_from_object(object)
+            except ValueError: pass
+            else:
+                if field.value is not None:
+                    condition = f'{field.name} = ' + '{}'
+                    values = (field.value, )
+                    break
+        else:
+            raise SchemaError(f'Unable to compose SQL condition: all key fields are empty (None type).')
+
+        return condition, values
         

@@ -1,15 +1,14 @@
 # dbrequest
 
-dbrequest is a library for easy database handling. The library is primarily designed for simple projects where complex SQL queries are not needed and SQLite can be used as the DBMS (although the library supports other DBMS as well).
+dbrequest is a simple ORM library for easy database handling. The library is primarily designed for simple projects where complex SQL queries are not needed and SQLite can be used as the DBMS (although the library supports other DBMS as well).
 
-The library provides an abstraction from the DBMS and allows working with storing, loading, modifying, and deleting object-containers without explicit use of SQL.
+The library provides an abstraction from the DBMS and allows working with storing, loading, modifying, and deleting model objects without explicit use of SQL.
 
 [Read this in Russian](https://github.com/korandr/dbrequest/blob/main/README.ru.md) 
 
 ## Contents
 
 - [Installation](#installation)
-- [Disclaimer](#disclaimer)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
 - [Feedback](#feedback)
@@ -34,19 +33,9 @@ Library import:
 import dbrequest
 ```
 
-## Disclaimer
-
-The library is primarily developed for the developer's personal projects and does not prioritize suitability for any projects.
-
-Some restrictions are used in the library (for example, all objects to be saved must have an id of type int), which are convenient for the developer's projects but may not necessarily be suitable for other projects.
-
-Nevertheless, the developer is not against integrating this library into other projects if it solves the necessary tasks.
-
-The library does not adhere to the PEP code style and is unlikely to do so. Objects, methods, and properties are always named using camelCase here. However, an important task is to adhere to the SOLID principles.
-
 ## Quick Start
 
-For example, let's create a table `users`. Describe it in the file `create_table.sql`.
+For example, let's create a table `users`. Let's describe it in the `tables.sql` file:
 
 ```sql
 create table IF NOT EXISTS users (
@@ -54,142 +43,98 @@ create table IF NOT EXISTS users (
     username TEXT NOT NULL UNIQUE,
     last_message TEXT DEFAULT NULL
 );
+
 ```
 
-Let's initialize the library.
+Let's initialize the library:
 
 ```python
 import dbrequest
 
-dbrequest.init(init_script='create_table.sql')
+dbrequest.init(init_script='tables.sql')
 ```
 
-Next, in the file `user.py`, let's create a class `User`. Inheriting from `Savable` will automatically add the `_id` field and the `id` property to the class, which is the implementation of the `dbrequest.ISavable` interface.
+Next, define the model as `User` class:
 
 ```python
-from dbrequest import Savable
-
-class User(Savable):
-    def __init__(self) -> None:
-        super().__init__()
-        self._username: str = None
-        self._last_message: str = None
-
-    @property
-    def username(self) -> str:
-        return self._username
-
-    @property
-    def lastMessage(self) -> str:
-        return self._last_message
-
-    @username.setter
-    def username(self, value:str) -> None:
-        if not isinstance(value, str):
-            raise TypeError(type(value))
-        if value == '':
-            raise ValueError(value)
-        self._username = value
-
-    @lastMessage.setter
-    def lastMessage(self, value:str) -> None:
-        if not isinstance(value, str) and not value is None:
-            raise TypeError(type(value))
-        self._last_message = value
+class User:
+    def __init__(self, id: int | None = None, username: str | None = None) -> None:
+        self.id = id
+        self.username = username
+        self.last_message: str | None = None
 ```
 
-Now let's create the file `user_fields.py` and implement classes in it that will be used by the library to load and save fields of the `User` class in the database.
+Now let's create `IField` objects for all saved fields of the class:
 
 ```python
-from dbrequest import AbstractField
+from dbrequest import AutoField
 
-from user import User
-
-
-class UserUsernameField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
-        self._value = object.username
-
-    def setValueToObject(self, object:User) -> None:
-        object.username = self._value
-
-class UserLastMessageField(AbstractField):
-    def getValueFromObject(self, object:User) -> None:
-        self._value = object.lastMessage
-
-    def setValueToObject(self, object:User) -> None:
-        object.lastMessage = self._value
+id_field = AutoField('id', int, allowed_none=True)
+username_field = AutoField('username', str)
+last_message_field = AutoField('last_message', str, allowed_none=True)
 ```
 
-If needed, these classes can contain additional logic for data processing when exchanging data between the container class and the database. For example, converting non-standard data types to data types supported by the database.
+Here the `dbrequest.AutoField` class is using, becouse the names of the fields and the corresponding columns in the table are the same.   
+In more complex cases, you can use the `dbrequest.BaseField` class and explicitly specify the name matches.   
 
-The last step is to create a class for database requests related to the user. Let's create the file `user_request.py`.
+All that remains is to create an object for queries to the database:
 
 ```python
-from dbrequest import AbstractDBRequest
-from dbrequest import IdField
+from dbrequest import BaseDBRequest
 
-from user_fields import *
-
-class UserDBRequest(AbstractDBRequest):
-    def __init__(self) -> None:
-        super().__init__()
-        self._TABLE_NAME = 'users'
-        self._FIELDS = (
-            IdField(),
-            UserUsernameField('username', str),
-            UserLastMessageField('last_message', str, allowed_none=True)
-        )
+user_db_request = BaseDBRequest[User](
+    model_type = User,
+    table_name = 'users',
+    fields = (
+        id_field,
+        username_field,
+        last_message_field,
+    ),
+    key_fields = (
+        id_field,
+        username_field,
+    ),
+)
 ```
+In the `fields` parameter we specify a tuple of all fields in the order in which the columns were created in the table.   
+`key_fields` - fields with unique values ​​that can be used to find a specific object in the database.
 
-In `self._TABLE_NAME`, specify the name of the corresponding table.
+The Generic parameter of the `BaseDBRequest` class is not required, but will help in typing the return of the `load_all` method.
 
-Through the property `self._FIELDS`, the connection with columns in the database is established. The method takes a tuple of implementations of `AbstractField`. The fields should be arranged in the same order as the columns in the database. In the constructor of each field class, specify the column name and its type. If the column can accept a `NULL` value, then `allowednone=True` must be defined.
-
-The abstraction is created. Now it is convenient to perform operations with the `User` class and the database.
+Now you can conveniently perform operations with the `User` class and the database:
 
 ```python
-from typing import Tuple
+user = User(username='simple_user')
+user_db_request.save(user)
 
-from user import User
-from user_request import UserDBRequest
-
-
-user = User()
-user.username = 'simple_user'
-
-request = UserDBRequest()
-request.save(user)
-
-user: User = request.loadAll(User(), limit=1)[0]
+user = user_db_request.load_all(User(), limit=1, reverse=True)[0]
 print(user.id)
 
-sameUser = User()
-sameUser.id = user.id
-request.load(sameUser)
-print(sameUser.username)
+same_user = User(id=user.id)
+user_db_request.load(same_user)
+print(same_user.username)
 
-user.lastMessage = 'Hello world!'
-request.update(user)
+user.last_message = 'Hello world!'
+user_db_request.update(user)
 
-admin = User()
-admin.username = 'admin'
-admin.lastMessage = 'Do you want to be banned?'
+admin = User(username='admin')
+admin.last_message = 'Do you want to be banned?'
+user_db_request.save(admin)
 
-request.save(admin)
-
-users: Tuple[User] = request.loadAll(User())
+users = user_db_request.load_all(User())
 for user in users:
-    print(f'The user who said "{user.lastMessage}" has been deleted')
-    request.delete(user)
+    print(f'The user who said "{user.last_message}" has been deleted')
+    user_db_request.delete(user)
 ```
 
-[See the code from the example](https://github.com/korandr/dbrequest/tree/main/example)
+[See the code for this and other examples](https://github.com/korandr/dbrequest/tree/main/examples)
 
 ## Documentation
 
-The documentation for the library is only [available in Russian](https://github.com/korandr/dbrequest/wiki). If you are genuinely interested in the documentation, I suggest using Google Translate as a browser extension, as it works really well.
+Basic documentation is contained in the library (docstring).   
+Full documentation for the library is only [available in Russian](https://github.com/korandr/dbrequest/wiki).   
+(Use Google Translate as a browser extension, as it works really well)
 
 ## Feedback
 
-Developer: Andrey Korovyanskiy | [korandrmail@ya.ru](mailto:korandrmail@ya.ru)
+Developer: Andrey Korovyanskiy | [andrey.korovyansky@gmail.com](mailto:andrey.korovyansky@gmail.com)
