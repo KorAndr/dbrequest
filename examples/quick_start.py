@@ -35,7 +35,7 @@ if __name__ == '__main__':
     user = User(username='simple_user')
     user_db_request.save(user)
 
-    user: User = user_db_request.load_all(User(), limit=1, reverse=True)[0]
+    user = user_db_request.load_all(User(), limit=1, reverse=True)[0]
     print(user.id)
 
     same_user = User(id=user.id)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     admin.last_message = 'Do you want to be banned?'
     user_db_request.save(admin)
 
-    users: tuple[User] = user_db_request.load_all(User())
+    users = user_db_request.load_all(User())
     for user in users:
         print(f'The user who said "{user.last_message}" has been deleted')
         user_db_request.delete(user)
