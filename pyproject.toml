@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dbrequest"
-version = "0.1.6"
+version = "0.2.0"
 authors = [
-    { name="korandr", email="korandrmail@ya.ru" },
+    { name="korandr", email="andrey.korovyansky@gmail.com" },
 ]
-description = "Abstraction from DBMS, queries without explicit use of SQL, and convenient work with high-level object-containers."
+description = "Simple ORM library for easy database handling."
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
